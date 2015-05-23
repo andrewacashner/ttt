@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define CHARBOARDLENGTH 62
+#define CHAR_BOARD_LENGTH 62
 
 static const char blankboard[] = 
 	"\n   |   |   \n"
@@ -22,54 +22,42 @@ static const enum {
 	B1, B2, B3,
 	C1, C2, C3 } squareID;
 
-static const enum { XPLAYER, OPLAYER, EMPTY } playerID;
-static const char playerchar[] = {'X', 'O', ' '};
-
-typedef struct {
-	int square; /* A1--C3 (i.e., 0--8) */
-	int player; /* XPLAYER or OPLAYER */
-} boardsquare;
+static const enum { EMPTY, XPLAYER, OPLAYER } playerID;
+static const char playerchar[] = {' ', 'X', 'O'};
 
 
-void printboard(boardsquare gameboard[], char charboard[]);
+void printboard(int gameboard[]);
 
 
 int main(void)
 {
-	int i;
-	char charboard[CHARBOARDLENGTH];
-	boardsquare gameboard[9];
-	
-	/* Initialize empty gameboard */
-	for (i = 0; i < 9; ++i) {
-		gameboard[i].square = EMPTY;
-		gameboard[i].player = EMPTY; 
-	}
-	/* Initialize blank charboard */
-	strcpy(charboard, blankboard);
+	int gameboard[9] = { 0, 0, 0,  0, 0, 0,  0, 0, 0 }; /* Start empty */
 
-	gameboard[0].square = A2;
-	gameboard[0].player = XPLAYER;
-	gameboard[1].square = B3;
-	gameboard[1].player = OPLAYER;
+	gameboard[A1] = XPLAYER;
+	gameboard[B3] = OPLAYER;
+	gameboard[C1] = XPLAYER;
 
-	printboard(gameboard, charboard);
+	printboard(gameboard);
 
 	return(0);
 }
 
 
-
-
-void printboard(boardsquare gameboard[], char charboard[])
+/* Print the game board: 
+ * Copy the blank board and substitute X or O for spaces wherever
+ * squares are filled in gameboard[] 
+ */
+void printboard(int gameboard[])
 {
 	int i;
-	int currentsquare;
+	int currentsquare, currentplayer;
+	char charboard[CHAR_BOARD_LENGTH];
+	strcpy(charboard, blankboard);
 	
 	for (i= 0; i < 9; ++i) { 
-		if (gameboard[i].square == EMPTY) break;
-		currentsquare = charboard_index[gameboard[i].square];
-		charboard[currentsquare] = playerchar[gameboard[i].player];
+		currentsquare = charboard_index[i];
+		currentplayer = gameboard[i];
+		charboard[currentsquare] = playerchar[currentplayer];
  	} 
 
 	printf("%s", charboard);
