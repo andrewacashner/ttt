@@ -12,6 +12,9 @@ static const char blankboard[] =
 	"-----------\n"
 	"   |   |   \n\n";
 
+static const char divider[] = 
+	"************\n";
+
 static const int charboard_index[] = 
 	{ 2, 6, 10,
 	 26, 30, 34,
@@ -26,40 +29,29 @@ static const enum { EMPTY, XPLAYER, OPLAYER } playerID;
 static const char playerchar[] = {' ', 'X', 'O'};
 
 
-void printboard(int gameboard[]);
-
+void newmove(int player, int square, int *gameboard, char *charboard);
 
 int main(void)
 {
 	int gameboard[9] = { 0, 0, 0,  0, 0, 0,  0, 0, 0 }; /* Start empty */
+	char charboard[CHAR_BOARD_LENGTH];
+	int *gameboard_ptr = gameboard;
+	char *charboard_ptr = charboard;
 
-	gameboard[A1] = XPLAYER;
-	gameboard[B3] = OPLAYER;
-	gameboard[C1] = XPLAYER;
+	strcpy(charboard, blankboard);
 
-	printboard(gameboard);
-
+	newmove(XPLAYER, A1, gameboard_ptr, charboard_ptr);
+	newmove(OPLAYER, B3, gameboard_ptr, charboard_ptr);
+	newmove(XPLAYER, C1, gameboard_ptr, charboard_ptr);
+	
 	return(0);
 }
 
-
-/* Print the game board: 
- * Copy the blank board and substitute X or O for spaces wherever
- * squares are filled in gameboard[] 
- */
-void printboard(int gameboard[])
+void newmove(int player, int square, int *gameboard, char *charboard)
 {
-	int i;
-	int currentsquare, currentplayer;
-	char charboard[CHAR_BOARD_LENGTH];
-	strcpy(charboard, blankboard);
-	
-	for (i= 0; i < 9; ++i) { 
-		currentsquare = charboard_index[i];
-		currentplayer = gameboard[i];
-		charboard[currentsquare] = playerchar[currentplayer];
- 	} 
-
-	printf("%s", charboard);
+	*(gameboard + square) = player;
+	*(charboard + charboard_index[square]) = playerchar[player];
+	printf("%s%s", charboard, divider);
 	return;
 }
+
