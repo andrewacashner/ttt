@@ -1,0 +1,172 @@
+\input cwebmac
+% ttt.w -- Tic tac toe game in CWEB, Copyright (c) 2015 Andrew A. Cashner
+% 2015-05-26
+
+
+\N{1}{1}Introduction. This is \.{ttt}, a command-line tic-tac-toe game.
+% TODO more
+
+\Y\B\8\#\&{include} \.{<stdio.h>}\6
+\8\#\&{include} \.{<stdlib.h>}\6
+\8\#\&{include} \.{<string.h>}\6
+\X6:Global variables\X\7
+\&{typedef} \&{enum} ${}\{{}$\1\6
+${}\.{FALSE},\39\.{TRUE}{}$\2\6
+${}\}{}$ \&{boolean};\7
+\X9:Function prototypes\X\7
+\&{int} \\{main}(\&{int} \\{argc}${},\39{}$\&{char} ${}{*}\\{argv}[\,]){}$\1\1%
+\2\2\6
+${}\{{}$\1\6
+\X7:Main variables\X\7
+\&{boolean} \\{gameover};\7
+${}\\{gameover}\K\.{FALSE};{}$\6
+\X2:Process command-line options\X\6
+\X8:Populate switching tables\X\6
+\X3:Set up first move and draw board\X\6
+\&{while} ${}(\\{gameover}\E\.{FALSE}){}$\5
+${}\{{}$\1\6
+\X4:Get O move, update board\X\6
+\X11:Process last move\X\6
+\X16:Prepare next move\X\6
+\4${}\}{}$\2\6
+\X21:Gameover routine\X\6
+\&{return} (\T{0});\6
+\4${}\}{}$\2\par
+\fi
+
+\N{1}{2}Process command-line options.
+\Y\B\4\X2:Process command-line options\X${}\E{}$\par
+\U1.\fi
+
+\M{3}First move.
+\Y\B\4\X3:Set up first move and draw board\X${}\E{}$\par
+\U1.\fi
+
+\M{4}O move.
+\Y\B\4\X4:Get O move, update board\X${}\E{}$\par
+\U1.\fi
+
+\N{1}{5}Printing the game board.
+
+\Y\B\4\D$\.{CHAR\_BOARD\_LENGTH}$ \5
+\T{62}\par
+\fi
+
+\M{6}Switching tables needed to draw the board, and update the drawing.
+
+\Y\B\4\X6:Global variables\X${}\E{}$\6
+\&{static} \&{const} \&{char} \\{blankboard}[\,]${}\K\.{"\\n\ \ \ |\ \ \ |\ \ \
+\\n"}\.{"-----------\\n"}\.{"\ \ \ |\ \ \ |\ \ \ \\n"}\.{"-----------\\n"}\.{"\
+\ \ |\ \ \ |\ \ \ \\n\\n"};{}$\6
+\&{static} \&{const} \&{char} \\{divider}[\,]${}\K\.{"************\\n"};{}$\6
+\&{static} \&{const} \&{int} \\{charboard\_index}[\,]${}\K\{\T{2},\39\T{6},\39%
+\T{10},\39\T{26},\39\T{30},\39\T{34},\39\T{50},\39\T{54},\39\T{58}\};{}$\6
+\&{static} \&{const} \&{enum} ${}\{{}$\1\6
+${}\.{A1},\39\.{A2},\39\.{A3},\39\.{B1},\39\.{B2},\39\.{B3},\39\.{C1},\39%
+\.{C2},\39\.{C3}{}$\2\6
+${}\}{}$ \\{squareID};\6
+\&{static} \&{const} \&{enum} ${}\{{}$\1\6
+${}\.{EMPTY},\39\.{XPLAYER},\39\.{OPLAYER}{}$\2\6
+${}\}{}$ \\{playerID};\6
+\&{static} \&{const} \&{char} \\{playerchar}[\,]${}\K\{\.{'\ '},\39\.{'X'},\39%
+\.{'O'}\}{}$;\par
+\U1.\fi
+
+\M{7}We set up the table within \PB{\\{main}}.
+
+\Y\B\4\X7:Main variables\X${}\E{}$\6
+\&{int} \\{gameboard}[\T{9}]${}\K\{\T{0},\39\T{0},\39\T{0},\39\T{0},\39\T{0},%
+\39\T{0},\39\T{0},\39\T{0},\39\T{0}\}{}$;\C{ Start empty }\6
+\&{char} \\{charboard}[\.{CHAR\_BOARD\_LENGTH}];\6
+\&{int} ${}{*}\\{gameboard\_ptr}\K\\{gameboard};{}$\6
+\&{char} ${}{*}\\{charboard\_ptr}\K\\{charboard}{}$;\par
+\U1.\fi
+
+\M{8}We make a local copy of the constant table set up in global variables.
+
+\Y\B\4\X8:Populate switching tables\X${}\E{}$\6
+$\\{strcpy}(\\{charboard},\39\\{blankboard}){}$;\par
+\U1.\fi
+
+\N{1}{9}Updating the game board.
+
+\Y\B\4\X9:Function prototypes\X${}\E{}$\6
+\&{void} \\{newmove}(\&{int} \\{player}${},\39{}$\&{int} \\{square}${},\39{}$%
+\&{int} ${}{*}\\{gameboard},\39{}$\&{char} ${}{*}\\{charboard}){}$;\par
+\U1.\fi
+
+\M{10}The function updates the gameboard with a new move.
+
+\Y\B\&{void} \\{newmove}(\&{int} \\{player}${},\39{}$\&{int} \\{square}${},%
+\39{}$\&{int} ${}{*}\\{gameboard},\39{}$\&{char} ${}{*}\\{charboard}){}$\1\1\2%
+\2\6
+${}\{{}$\1\6
+${}{*}(\\{gameboard}+\\{square})\K\\{player};{}$\6
+${}{*}(\\{charboard}+\\{charboard\_index}[\\{square}])\K\\{playerchar}[%
+\\{player}];{}$\6
+${}\\{printf}(\.{"\%s\%s"},\39\\{charboard},\39\\{divider});{}$\6
+\&{return};\6
+\4${}\}{}$\2\par
+\fi
+
+\M{11}Process the X and O moves of turn just completed.
+
+\Y\B\4\X11:Process last move\X${}\E{}$\6
+\X12:Test for O win 3/3\X\6
+\X20:Update X positions\X\6
+\X13:Update O positions\X\6
+\X14:Eliminate X wins\X\6
+\X15:Eliminate O wins\X\par
+\U1.\fi
+
+\M{12}TODO
+\Y\B\4\X12:Test for O win 3/3\X${}\E{}$\par
+\U11.\fi
+
+\M{13}TODO
+\Y\B\4\X13:Update O positions\X${}\E{}$\par
+\U11.\fi
+
+\M{14}TODO
+\Y\B\4\X14:Eliminate X wins\X${}\E{}$\par
+\U11.\fi
+
+\M{15}TODO
+\Y\B\4\X15:Eliminate O wins\X${}\E{}$\par
+\U11.\fi
+
+\M{16}Prepare the next X move.
+
+\Y\B\4\X16:Prepare next move\X${}\E{}$\6
+\X17:Test for X runs 2/3\X\6
+\X18:Test for O runs 2/3\X\6
+\X19:Choose free spot\X\par
+\U1.\fi
+
+\M{17}TODO
+\Y\B\4\X17:Test for X runs 2/3\X${}\E{}$\par
+\U16.\fi
+
+\M{18}TODO
+\Y\B\4\X18:Test for O runs 2/3\X${}\E{}$\par
+\U16.\fi
+
+\M{19}TODO
+\Y\B\4\X19:Choose free spot\X${}\E{}$\par
+\U16.\fi
+
+\N{1}{20}Dummy move. % TODO temporary only
+
+\Y\B\4\X20:Update X positions\X${}\E{}$\6
+$\\{newmove}(\.{XPLAYER},\39\.{A1},\39\\{gameboard\_ptr},\39\\{charboard%
+\_ptr});{}$\6
+${}\\{gameover}\K\.{TRUE}{}$;\par
+\U11.\fi
+
+\N{1}{21}Game-over routine.
+\Y\B\4\X21:Gameover routine\X${}\E{}$\par
+\U1.\fi
+
+\inx
+\fin
+\con

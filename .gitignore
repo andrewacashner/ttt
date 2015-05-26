@@ -1,2 +1,7 @@
 *.cx
+*.idx
+*.log
+*.pdf
+*.scn
 *.swp
+*.toc
