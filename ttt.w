@@ -131,7 +131,31 @@ void newmove(int player, int square, int *gameboard, char *charboard)
 	@<Test for O runs 2/3@>@; 
 	@<Choose free spot@>@;
 
-@ TODO
+@ Test for two in a row, and if found, return the third member.
+
+@d MAXANSWERS 8
+@d NOTFOUND -1
+@d MAXPERMS 24
+
+@ Switching table with winning series.
+
+@<Global variables@>=
+static const int answer[8][3] = {
+	{0, 1, 2}, 
+	{0, 3, 6}, 
+	{0, 4, 8}, 
+	{1, 4, 7}, 
+	{2, 4, 6}, 
+	{2, 5, 8}, 
+	{3, 4, 5}, 
+	{6, 7, 8} 
+};
+
+@ Function to test two in a row.
+
+@<Function prototypes@>=
+int twoofthree(int test[], int test_array_length, int perms[][3]);
+
 @<Test for X runs 2/3@>=
 
 @ TODO
