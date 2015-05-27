@@ -45,7 +45,7 @@ static const char greeting[]= {
 
 
 /*:2*//*7:*/
-#line 108 "./ttt.w"
+#line 112 "./ttt.w"
 
 static const int charboard_index[]= 
 {2,6,10,
@@ -61,7 +61,7 @@ static const enum{EMPTY,XPLAYER,OPLAYER}playerID;
 static const char playerchar[]= {' ','X','O'};
 
 /*:7*//*10:*/
-#line 150 "./ttt.w"
+#line 154 "./ttt.w"
 
 static const int answer[8][3]= {
 {0,1,2},
@@ -80,12 +80,12 @@ static const int answer[8][3]= {
 typedef enum{FALSE,TRUE}boolean;
 
 /*14:*/
-#line 173 "./ttt.w"
+#line 177 "./ttt.w"
 
 int newmove(int player,int square,int*gameboard,char*charboard);
 
 /*:14*//*24:*/
-#line 233 "./ttt.w"
+#line 239 "./ttt.w"
 
 int twoofthree(int test[],int test_array_length,int perms[][3]);
 
@@ -100,9 +100,10 @@ int main(int argc,char*argv[])
 
 char line[MAXLINE];
 int nextOmove;
+int squares_filled;
 
 /*:4*//*8:*/
-#line 130 "./ttt.w"
+#line 134 "./ttt.w"
 
 int gameboard[9]= {0,0,0,0,0,0,0,0,0};
 char charboard[]= 
@@ -116,10 +117,10 @@ char*charboard_ptr= charboard;
 
 
 /*:8*//*27:*/
-#line 244 "./ttt.w"
+#line 250 "./ttt.w"
 
-int best_moves[]= {B2,A1,A3,C1,C3};
-int total_best_moves= 5;
+int best_moves[]= {B2,A1,A3,C1,C3,A2,B1,B3,C2};
+int total_best_moves= 8;
 int i;
 
 /*:27*/
@@ -136,7 +137,7 @@ gameover= FALSE;
 #line 23 "./ttt.w"
 
 /*12:*/
-#line 164 "./ttt.w"
+#line 168 "./ttt.w"
 
 
 /*:12*/
@@ -145,7 +146,7 @@ gameover= FALSE;
 
 printf("%s\n",greeting);
 /*13:*/
-#line 168 "./ttt.w"
+#line 172 "./ttt.w"
 
 printf("%s",charboard);
 
@@ -155,7 +156,7 @@ printf("%s",charboard);
 
 while(gameover==FALSE){
 /*5:*/
-#line 85 "./ttt.w"
+#line 86 "./ttt.w"
 
 while(1){
 printf("Your move?\n");
@@ -171,7 +172,10 @@ nextOmove+= line[1]-'1';
 if(newmove(OPLAYER,nextOmove,gameboard_ptr,charboard_ptr)==
 NOTEMPTY){
 printf("%s\n",error[SQUARE_NOT_EMPTY]);
-}else break;
+}else{
+++squares_filled;
+break;
+}
 }
 
 
@@ -179,87 +183,90 @@ printf("%s\n",error[SQUARE_NOT_EMPTY]);
 #line 30 "./ttt.w"
 
 /*16:*/
-#line 195 "./ttt.w"
+#line 199 "./ttt.w"
 
 /*17:*/
-#line 203 "./ttt.w"
+#line 207 "./ttt.w"
 
 
 
 
 /*:17*/
-#line 196 "./ttt.w"
+#line 200 "./ttt.w"
 
 /*18:*/
-#line 209 "./ttt.w"
-
+#line 213 "./ttt.w"
 
 
 
 /*:18*/
-#line 197 "./ttt.w"
+#line 201 "./ttt.w"
 
 /*19:*/
-#line 214 "./ttt.w"
-
-
-/*:19*/
-#line 198 "./ttt.w"
-
-/*20:*/
 #line 217 "./ttt.w"
 
 
-/*:20*/
-#line 199 "./ttt.w"
+/*:19*/
+#line 202 "./ttt.w"
 
-/*21:*/
+/*20:*/
 #line 220 "./ttt.w"
 
 
+/*:20*/
+#line 203 "./ttt.w"
+
+/*21:*/
+#line 223 "./ttt.w"
+
+
 /*:21*/
-#line 200 "./ttt.w"
+#line 204 "./ttt.w"
 
 
 /*:16*/
 #line 31 "./ttt.w"
 
 /*22:*/
-#line 224 "./ttt.w"
+#line 227 "./ttt.w"
 
 /*25:*/
-#line 237 "./ttt.w"
+#line 243 "./ttt.w"
 
 
 /*:25*/
-#line 225 "./ttt.w"
+#line 228 "./ttt.w"
 
 /*26:*/
-#line 240 "./ttt.w"
+#line 246 "./ttt.w"
 
 
 /*:26*/
-#line 226 "./ttt.w"
+#line 229 "./ttt.w"
 
 /*28:*/
-#line 251 "./ttt.w"
+#line 257 "./ttt.w"
 
 for(i= 0;i<total_best_moves;++i){
 if(newmove(XPLAYER,best_moves[i],gameboard_ptr,charboard_ptr)!=
 NOTEMPTY)
 break;
 }
+++squares_filled;
 
 /*:28*/
-#line 227 "./ttt.w"
+#line 230 "./ttt.w"
 
+if(squares_filled> 8){
+gameover= TRUE;
+}
 
 /*:22*/
 #line 32 "./ttt.w"
 
 }
 /*29:*/
-#line 259 "./ttt.w"
+#line 266 "./ttt.w"
 
 printf("Game over!\n");/*:29*/
 #line 34 "./ttt.w"
@@ -270,7 +277,7 @@ return(0);
 
 
 /*:1*//*15:*/
-#line 180 "./ttt.w"
+#line 184 "./ttt.w"
 
 int newmove(int player,int square,int*gameboard,char*charboard)
 {
@@ -280,12 +287,12 @@ return(NOTEMPTY);
 *(gameboard+square)= player;
 *(charboard+charboard_index[square])= playerchar[player];
 /*13:*/
-#line 168 "./ttt.w"
+#line 172 "./ttt.w"
 
 printf("%s",charboard);
 
 /*:13*/
-#line 188 "./ttt.w"
+#line 192 "./ttt.w"
 
 return(0);
 }

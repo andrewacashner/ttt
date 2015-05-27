@@ -76,6 +76,7 @@ static const char greeting[] = {
 @<Main variables@>=
 char line[MAXLINE];
 int nextOmove;
+int squares_filled; /* Total squares filled on board */
 
 @ Check O command for validity and set |nextOmove|.
 The command is entered in the form \.{A1\\n}.
@@ -97,7 +98,10 @@ while (1) {
 	if (newmove(OPLAYER, nextOmove, gameboard_ptr, charboard_ptr) ==
 	NOTEMPTY) {
 		printf("%s\n", error[SQUARE_NOT_EMPTY]);
-	} else break;
+	} else {
+		++squares_filled;
+		break;
+	}
 }
 
 
@@ -207,7 +211,6 @@ int newmove(int player, int square, int *gameboard, char *charboard)
 @ Update X positions.
 
 @<Update X positions@>=
-/*  gameover = TRUE;   TODO temporary */
 
 
 @ TODO
@@ -225,6 +228,9 @@ int newmove(int player, int square, int *gameboard, char *charboard)
 	@<Test for X runs 2/3@>@;
 	@<Test for O runs 2/3@>@; 
 	@<Choose free spot@>@;
+	if (squares_filled > 8) {
+		gameover = TRUE;  
+	}
 
 @ Test for two in a row, and if found, return the third member.
 
@@ -242,8 +248,8 @@ int twoofthree(int test[], int test_array_length, int perms[][3]);
 @ Move X to any optimal square.
 
 @<Main variables@>=
-int best_moves[] = {B2, A1, A3, C1, C3};
-int total_best_moves = 5;
+int best_moves[] = {B2, A1, A3, C1, C3, A2, B1, B3, C2};
+int total_best_moves = 8;
 int i;
 
 @ Loop through list of optimal squares and select one that is not occupied.
@@ -254,6 +260,7 @@ for (i = 0; i < total_best_moves; ++i) {
 	NOTEMPTY)
 		break;
 }
+++squares_filled;
 
 @* Game-over routine.
 @<Gameover routine@>=

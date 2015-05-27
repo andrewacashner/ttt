@@ -68,7 +68,8 @@ A3,\ B}\)\.{1,\ B2,\ B3,\ C1,\ C2,\ o}\)\.{r\ C3."},\39\.{"I\ don't\ understand%
 \&{char} \6
 \&{line} [\.{MAXLINE}]\1\5
 ;\2\7
-\&{int} \\{nextOmove};\par
+\&{int} \\{nextOmove};\6
+\&{int} \\{squares\_filled};\C{ Total squares filled on board }\par
 \As8\ET27.
 \U1.\fi
 
@@ -90,8 +91,11 @@ ${}{-}\.{'1'};{}$\2\6
 \&{if} ${}(\\{newmove}(\.{OPLAYER},\39\\{nextOmove},\39\\{gameboard\_ptr},\39%
 \\{charboard\_ptr})\E\.{NOTEMPTY})$ $\{$ \\{printf} $(\.{"\%s\\n"},\39$ %
 \&{error} [\.{SQUARE\_NOT\_EMPTY}] )  ; $\}$ \6
-\&{else}\1\5
-\&{break};\2\6
+\&{else}\5
+${}\{{}$\1\6
+${}\PP\\{squares\_filled};{}$\6
+\&{break};\6
+\4${}\}{}$\2\6
 $\}{}$\par
 \U1.\fi
 
@@ -213,8 +217,7 @@ values for 3/3 }\par
 
 \M{18}Update X positions.
 
-\Y\B\4\X18:Update X positions\X${}\E{}$\C{  gameover = TRUE;   TODO temporary }%
-\par
+\Y\B\4\X18:Update X positions\X${}\E{}$\par
 \U16.\fi
 
 \M{19}TODO
@@ -234,7 +237,11 @@ values for 3/3 }\par
 \Y\B\4\X22:Prepare next move\X${}\E{}$\6
 \X25:Test for X runs 2/3\X\6
 \X26:Test for O runs 2/3\X\6
-\X28:Choose free spot\X\par
+\X28:Choose free spot\X\6
+\&{if} ${}(\\{squares\_filled}>\T{8}){}$\5
+${}\{{}$\1\6
+${}\\{gameover}\K\.{TRUE};{}$\6
+\4${}\}{}$\2\par
 \U1.\fi
 
 \M{23}Test for two in a row, and if found, return the third member.
@@ -260,8 +267,8 @@ values for 3/3 }\par
 
 \Y\B\4\X4:Main variables\X${}\mathrel+\E{}$\6
 \&{int} \\{best\_moves}[\,]${}\K\{\.{B2},\39\.{A1},\39\.{A3},\39\.{C1},\39%
-\.{C3}\};{}$\6
-\&{int} \\{total\_best\_moves}${}\K\T{5};{}$\6
+\.{C3},\39\.{A2},\39\.{B1},\39\.{B3},\39\.{C2}\};{}$\6
+\&{int} \\{total\_best\_moves}${}\K\T{8};{}$\6
 \&{int} \|i;\par
 \fi
 
@@ -273,7 +280,8 @@ ${}\{{}$\1\6
 \&{if} ${}(\\{newmove}(\.{XPLAYER},\39\\{best\_moves}[\|i],\39\\{gameboard%
 \_ptr},\39\\{charboard\_ptr})\I\.{NOTEMPTY}){}$\1\5
 \&{break};\2\6
-\4${}\}{}$\2\par
+\4${}\}{}$\2\6
+${}\PP\\{squares\_filled}{}$;\par
 \U22.\fi
 
 \N{1}{29}Game-over routine.
