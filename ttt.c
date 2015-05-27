@@ -1,5 +1,9 @@
 #define CHAR_BOARD_LENGTH 62 \
 
+#define MAXANSWERS 8
+#define NOTFOUND -1
+#define MAXPERMS 24 \
+
 /*1:*/
 #line 7 "./ttt.w"
 
@@ -33,7 +37,21 @@ C1,C2,C3}squareID;
 static const enum{EMPTY,XPLAYER,OPLAYER}playerID;
 static const char playerchar[]= {' ','X','O'};
 
-/*:6*/
+/*:6*//*18:*/
+#line 142 "./ttt.w"
+
+static const int answer[8][3]= {
+{0,1,2},
+{0,3,6},
+{0,4,8},
+{1,4,7},
+{2,4,6},
+{2,5,8},
+{3,4,5},
+{6,7,8}
+};
+
+/*:18*/
 #line 12 "./ttt.w"
 
 typedef enum{FALSE,TRUE}boolean;
@@ -43,7 +61,12 @@ typedef enum{FALSE,TRUE}boolean;
 
 void newmove(int player,int square,int*gameboard,char*charboard);
 
-/*:9*/
+/*:9*//*19:*/
+#line 156 "./ttt.w"
+
+int twoofthree(int test[],int test_array_length,int perms[][3]);
+
+/*:19*/
 #line 15 "./ttt.w"
 
 
@@ -105,13 +128,13 @@ while(gameover==FALSE){
 /*:12*/
 #line 109 "./ttt.w"
 
-/*20:*/
-#line 145 "./ttt.w"
+/*23:*/
+#line 170 "./ttt.w"
 
 newmove(XPLAYER,A1,gameboard_ptr,charboard_ptr);
 gameover= TRUE;
 
-/*:20*/
+/*:23*/
 #line 110 "./ttt.w"
 
 /*13:*/
@@ -142,25 +165,25 @@ gameover= TRUE;
 /*16:*/
 #line 129 "./ttt.w"
 
-/*17:*/
-#line 135 "./ttt.w"
+/*20:*/
+#line 160 "./ttt.w"
 
 
-/*:17*/
+/*:20*/
 #line 130 "./ttt.w"
 
-/*18:*/
-#line 138 "./ttt.w"
+/*21:*/
+#line 163 "./ttt.w"
 
 
-/*:18*/
+/*:21*/
 #line 131 "./ttt.w"
 
-/*19:*/
-#line 141 "./ttt.w"
+/*22:*/
+#line 166 "./ttt.w"
 
 
-/*:19*/
+/*:22*/
 #line 132 "./ttt.w"
 
 
@@ -168,9 +191,9 @@ gameover= TRUE;
 #line 31 "./ttt.w"
 
 }
-/*21:*/
-#line 150 "./ttt.w"
-/*:21*/
+/*24:*/
+#line 175 "./ttt.w"
+/*:24*/
 #line 33 "./ttt.w"
 
 return(0);

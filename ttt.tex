@@ -29,7 +29,7 @@ ${}\{{}$\1\6
 \X11:Process last move\X\6
 \X16:Prepare next move\X\6
 \4${}\}{}$\2\6
-\X21:Gameover routine\X\6
+\X24:Gameover routine\X\6
 \&{return} (\T{0});\6
 \4${}\}{}$\2\par
 \fi
@@ -70,6 +70,7 @@ ${}\.{EMPTY},\39\.{XPLAYER},\39\.{OPLAYER}{}$\2\6
 ${}\}{}$ \\{playerID};\6
 \&{static} \&{const} \&{char} \\{playerchar}[\,]${}\K\{\.{'\ '},\39\.{'X'},\39%
 \.{'O'}\}{}$;\par
+\A18.
 \U1.\fi
 
 \M{7}We set up the table within \PB{\\{main}}.
@@ -93,6 +94,7 @@ $\\{strcpy}(\\{charboard},\39\\{blankboard}){}$;\par
 \Y\B\4\X9:Function prototypes\X${}\E{}$\6
 \&{void} \\{newmove}(\&{int} \\{player}${},\39{}$\&{int} \\{square}${},\39{}$%
 \&{int} ${}{*}\\{gameboard},\39{}$\&{char} ${}{*}\\{charboard}){}$;\par
+\A19.
 \U1.\fi
 
 \M{10}The function updates the gameboard with a new move.
@@ -113,7 +115,7 @@ ${}\\{printf}(\.{"\%s\%s"},\39\\{charboard},\39\\{divider});{}$\6
 
 \Y\B\4\X11:Process last move\X${}\E{}$\6
 \X12:Test for O win 3/3\X\6
-\X20:Update X positions\X\6
+\X23:Update X positions\X\6
 \X13:Update O positions\X\6
 \X14:Eliminate X wins\X\6
 \X15:Eliminate O wins\X\par
@@ -138,33 +140,60 @@ ${}\\{printf}(\.{"\%s\%s"},\39\\{charboard},\39\\{divider});{}$\6
 \M{16}Prepare the next X move.
 
 \Y\B\4\X16:Prepare next move\X${}\E{}$\6
-\X17:Test for X runs 2/3\X\6
-\X18:Test for O runs 2/3\X\6
-\X19:Choose free spot\X\par
+\X20:Test for X runs 2/3\X\6
+\X21:Test for O runs 2/3\X\6
+\X22:Choose free spot\X\par
 \U1.\fi
 
-\M{17}TODO
-\Y\B\4\X17:Test for X runs 2/3\X${}\E{}$\par
+\M{17}Test for two in a row, and if found, return the third member.
+
+\Y\B\4\D$\.{MAXANSWERS}$ \5
+\T{8}\par
+\B\4\D$\.{NOTFOUND}$ \5
+${-}{}$\T{1}\par
+\B\4\D$\.{MAXPERMS}$ \5
+\T{24}\par
+\fi
+
+\M{18}Switching table with winning series.
+
+\Y\B\4\X6:Global variables\X${}\mathrel+\E{}$\6
+\&{static} \&{const} \&{int} \\{answer}[\T{8}][\T{3}]${}\K\{\{\T{0},\39\T{1},%
+\39\T{2}\},\39\{\T{0},\39\T{3},\39\T{6}\},\39\{\T{0},\39\T{4},\39\T{8}\},\39\{%
+\T{1},\39\T{4},\39\T{7}\},\39\{\T{2},\39\T{4},\39\T{6}\},\39\{\T{2},\39\T{5},%
+\39\T{8}\},\39\{\T{3},\39\T{4},\39\T{5}\},\39\{\T{6},\39\T{7},\39\T{8}\}\}{}$;%
+\par
+\fi
+
+\M{19}Function to test two in a row.
+
+\Y\B\4\X9:Function prototypes\X${}\mathrel+\E{}$\6
+\&{int} \\{twoofthree}(\&{int} \\{test}[\,]${},\39{}$\&{int} \\{test\_array%
+\_length}${},\39{}$\&{int} \\{perms}[\,][\T{3}]);\par
+\fi
+
+\M{20}TODO
+\Y\B\4\X20:Test for X runs 2/3\X${}\E{}$\par
 \U16.\fi
 
-\M{18}TODO
-\Y\B\4\X18:Test for O runs 2/3\X${}\E{}$\par
+\M{21}TODO
+\Y\B\4\X21:Test for O runs 2/3\X${}\E{}$\par
 \U16.\fi
 
-\M{19}TODO
-\Y\B\4\X19:Choose free spot\X${}\E{}$\par
+\M{22}TODO
+\Y\B\4\X22:Choose free spot\X${}\E{}$\par
 \U16.\fi
 
-\N{1}{20}Dummy move. % TODO temporary only
+\N{1}{23}Dummy move. % TODO temporary only
 
-\Y\B\4\X20:Update X positions\X${}\E{}$\6
+\Y\B\4\X23:Update X positions\X${}\E{}$\6
 $\\{newmove}(\.{XPLAYER},\39\.{A1},\39\\{gameboard\_ptr},\39\\{charboard%
 \_ptr});{}$\6
 ${}\\{gameover}\K\.{TRUE}{}$;\par
 \U11.\fi
 
-\N{1}{21}Game-over routine.
-\Y\B\4\X21:Gameover routine\X${}\E{}$\par
+\N{1}{24}Game-over routine.
+\Y\B\4\X24:Gameover routine\X${}\E{}$\par
 \U1.\fi
 
 \inx

@@ -156,6 +156,7 @@ static const int answer[8][3] = {
 @<Function prototypes@>=
 int twoofthree(int test[], int test_array_length, int perms[][3]);
 
+@ TODO
 @<Test for X runs 2/3@>=
 
 @ TODO
