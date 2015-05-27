@@ -38,28 +38,68 @@ int main(int argc, char *argv[])
 @<Process command-line options@>=
 
 @ First move.
-@<Set up first move...@>=
 
-@ O move.
+@ Error messages.
+
+@<Global variables@>=
+static const enum {
+	BAD_O_COMMAND
+} error_msg;
+
+static const char *error[] = {
+	"I don't understand your command."
+	"Enter a label like A1 and press [ENTER].",
+};
+static const char greeting[] = {
+	"\nTIC TAC TOE\n"
+	"I play X. You play O. You go first.\n"
+	"Use one of the labels shown below to say where you will move.\n"
+	"\n A1 | A2 | A3 \n-----------\n"
+	" B1 | B2 | B3 \n-----------\n" 
+	" C1 | C2 | C3\n\n"
+	"Let's play!"
+};
+
+
+@ Greeting.
+
+@<Set up first move...@>=
+printf("%s\n", greeting);
+
+
+@ Get user input.
+
+@d MAXLINE 100
+
+@<Main variables@>=
+char line[MAXLINE];
+int nextOmove;
+
+@ Get O move.
+
 @<Get O move, update board@>=
+@<Draw board@>@;
+while (1) {
+	printf("Your move?\n");
+	fgets(line, sizeof(line), stdin);
+	if ( 	line[2] != '\n' || 
+		line[0] < 'A' || line[0] > 'C' ||
+		line[1] < '1' || line[1] > '3' ) {
+		printf("%s\n", error[BAD_O_COMMAND]);
+		continue;
+	} else break;
+}
+
+nextOmove = (line[0] - 'A') * 3; /* \.{'A'} is 0, \.{'B'} is 3, \.{'C'} is 6 */
+nextOmove += line[1] - '1'; /* \.{'A1'} is $0 + 0$, \.{'B2'} is $3 + 1$ */
+newmove(OPLAYER, nextOmove, gameboard_ptr, charboard_ptr);
+
 
 @* Printing the game board.
-
-@d CHAR_BOARD_LENGTH 62
 
 @ Switching tables needed to draw the board, and update the drawing.
 
 @<Global variables@>=
-static const char blankboard[] = 
-	"\n   |   |   \n"
-	"-----------\n"
-	"   |   |   \n"
-	"-----------\n"
-	"   |   |   \n\n";
-
-static const char divider[] = 
-	"************\n";
-
 static const int charboard_index[] = 
 	{ 2, 6, 10,
 	 26, 30, 34,
@@ -73,18 +113,54 @@ static const enum {
 static const enum { EMPTY, XPLAYER, OPLAYER } playerID;
 static const char playerchar[] = {' ', 'X', 'O'};
 
-@ We set up the table within |main|.
+@ We set up the table within |main|. 
+|gameboard| holds |int| values for each square of the gameboard, which is either
+|EMPTY|, |XPLAYER|, or |OPLAYER|.
+|charboard| holds the characters to draw the board, and will be updated as new
+squares of |gameboard| are filled.
+
+@d CHAR_BOARD_LENGTH 62
 
 @<Main variables@>=
 int gameboard[9] = { 0, 0, 0,  0, 0, 0,  0, 0, 0 }; /* Start empty */
-char charboard[CHAR_BOARD_LENGTH];
+char charboard[] = 
+	"\n   |   |   \n"
+	"-----------\n"
+	"   |   |   \n"
+	"-----------\n"
+	"   |   |   \n\n";
 int *gameboard_ptr = gameboard;
 char *charboard_ptr = charboard;
 
-@ We make a local copy of the constant table set up in global variables.
 
+@ Switching table with winning series.
+
+@d MAXANSWERS 8
+@d NOTFOUND -1
+@d MAXPERMS 24
+
+@ These are all the triples that win the game.
+
+@<Global variables@>=
+static const int answer[8][3] = {
+	{0, 1, 2}, 
+	{0, 3, 6}, 
+	{0, 4, 8}, 
+	{1, 4, 7}, 
+	{2, 4, 6}, 
+	{2, 5, 8}, 
+	{3, 4, 5}, 
+	{6, 7, 8} 
+};
+
+@ Switching tables created in |main|.
+@ Set up switching table of permutations.
 @<Populate switching tables@>=
-strcpy(charboard, blankboard);
+
+@ Draw the board. We simply print |charboard| to |stdout|.
+
+@<Draw board@>=
+printf("%s", charboard);
 
 @* Updating the game board.
 
@@ -98,7 +174,7 @@ void newmove(int player, int square, int *gameboard, char *charboard)
 {
 	*(gameboard + square) = player;
 	*(charboard + charboard_index[square]) = playerchar[player];
-	printf("%s%s", charboard, divider);
+	@<Draw board@>@;
 	return;
 }
 
@@ -132,24 +208,6 @@ void newmove(int player, int square, int *gameboard, char *charboard)
 	@<Choose free spot@>@;
 
 @ Test for two in a row, and if found, return the third member.
-
-@d MAXANSWERS 8
-@d NOTFOUND -1
-@d MAXPERMS 24
-
-@ Switching table with winning series.
-
-@<Global variables@>=
-static const int answer[8][3] = {
-	{0, 1, 2}, 
-	{0, 3, 6}, 
-	{0, 4, 8}, 
-	{1, 4, 7}, 
-	{2, 4, 6}, 
-	{2, 5, 8}, 
-	{3, 4, 5}, 
-	{6, 7, 8} 
-};
 
 @ Function to test two in a row.
 

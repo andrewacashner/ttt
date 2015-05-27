@@ -1,3 +1,5 @@
+#define MAXLINE 100 \
+
 #define CHAR_BOARD_LENGTH 62 \
 
 #define MAXANSWERS 8
@@ -11,18 +13,30 @@
 #include <stdlib.h> 
 #include <string.h> 
 
-/*6:*/
-#line 52 "./ttt.w"
+/*4:*/
+#line 44 "./ttt.w"
 
-static const char blankboard[]= 
-"\n   |   |   \n"
-"-----------\n"
-"   |   |   \n"
-"-----------\n"
-"   |   |   \n\n";
+static const enum{
+BAD_O_COMMAND
+}error_msg;
 
-static const char divider[]= 
-"************\n";
+static const char*error[]= {
+"I don't understand your command."
+"Enter a label like A1 and press [ENTER].",
+};
+static const char greeting[]= {
+"\nTIC TAC TOE\n"
+"I play X. You play O. You go first.\n"
+"Use one of the labels shown below to say where you will move.\n"
+"\n A1 | A2 | A3 \n-----------\n"
+" B1 | B2 | B3 \n-----------\n"
+" C1 | C2 | C3\n\n"
+"Let's play!"
+};
+
+
+/*:4*//*9:*/
+#line 102 "./ttt.w"
 
 static const int charboard_index[]= 
 {2,6,10,
@@ -37,8 +51,8 @@ C1,C2,C3}squareID;
 static const enum{EMPTY,XPLAYER,OPLAYER}playerID;
 static const char playerchar[]= {' ','X','O'};
 
-/*:6*//*18:*/
-#line 142 "./ttt.w"
+/*:9*//*12:*/
+#line 144 "./ttt.w"
 
 static const int answer[8][3]= {
 {0,1,2},
@@ -51,36 +65,48 @@ static const int answer[8][3]= {
 {6,7,8}
 };
 
-/*:18*/
+/*:12*/
 #line 12 "./ttt.w"
 
 typedef enum{FALSE,TRUE}boolean;
 
-/*9:*/
-#line 91 "./ttt.w"
+/*16:*/
+#line 167 "./ttt.w"
 
 void newmove(int player,int square,int*gameboard,char*charboard);
 
-/*:9*//*19:*/
-#line 156 "./ttt.w"
+/*:16*//*25:*/
+#line 214 "./ttt.w"
 
 int twoofthree(int test[],int test_array_length,int perms[][3]);
 
-/*:19*/
+/*:25*/
 #line 15 "./ttt.w"
 
 
 int main(int argc,char*argv[])
 {
-/*7:*/
-#line 78 "./ttt.w"
+/*6:*/
+#line 74 "./ttt.w"
+
+char line[MAXLINE];
+int nextOmove;
+
+/*:6*//*10:*/
+#line 124 "./ttt.w"
 
 int gameboard[9]= {0,0,0,0,0,0,0,0,0};
-char charboard[CHAR_BOARD_LENGTH];
+char charboard[]= 
+"\n   |   |   \n"
+"-----------\n"
+"   |   |   \n"
+"-----------\n"
+"   |   |   \n\n";
 int*gameboard_ptr= gameboard;
 char*charboard_ptr= charboard;
 
-/*:7*/
+
+/*:10*/
 #line 19 "./ttt.w"
 
 boolean gameover;
@@ -93,122 +119,153 @@ gameover= FALSE;
 /*:2*/
 #line 23 "./ttt.w"
 
-/*8:*/
-#line 86 "./ttt.w"
+/*14:*/
+#line 158 "./ttt.w"
 
-strcpy(charboard,blankboard);
 
-/*:8*/
+/*:14*/
 #line 24 "./ttt.w"
 
 
-/*3:*/
-#line 41 "./ttt.w"
+/*5:*/
+#line 66 "./ttt.w"
+
+printf("%s\n",greeting);
 
 
-/*:3*/
+/*:5*/
 #line 26 "./ttt.w"
 
 
 while(gameover==FALSE){
-/*4:*/
-#line 44 "./ttt.w"
+/*7:*/
+#line 80 "./ttt.w"
+
+/*15:*/
+#line 162 "./ttt.w"
+
+printf("%s",charboard);
+
+/*:15*/
+#line 81 "./ttt.w"
+
+while(1){
+printf("Your move?\n");
+fgets(line,sizeof(line),stdin);
+if(line[2]!='\n'||
+line[0]<'A'||line[0]> 'C'||
+line[1]<'1'||line[1]> '3'){
+printf("%s\n",error[BAD_O_COMMAND]);
+continue;
+}else break;
+}
+
+nextOmove= (line[0]-'A')*3;
+nextOmove+= line[1]-'1';
+newmove(OPLAYER,nextOmove,gameboard_ptr,charboard_ptr);
 
 
-/*:4*/
+/*:7*/
 #line 29 "./ttt.w"
 
-/*11:*/
-#line 108 "./ttt.w"
+/*18:*/
+#line 184 "./ttt.w"
 
-/*12:*/
-#line 116 "./ttt.w"
+/*19:*/
+#line 192 "./ttt.w"
 
 
-/*:12*/
-#line 109 "./ttt.w"
+/*:19*/
+#line 185 "./ttt.w"
 
-/*23:*/
-#line 170 "./ttt.w"
+/*29:*/
+#line 228 "./ttt.w"
 
 newmove(XPLAYER,A1,gameboard_ptr,charboard_ptr);
 gameover= TRUE;
 
-/*:23*/
-#line 110 "./ttt.w"
-
-/*13:*/
-#line 119 "./ttt.w"
-
-
-/*:13*/
-#line 111 "./ttt.w"
-
-/*14:*/
-#line 122 "./ttt.w"
-
-
-/*:14*/
-#line 112 "./ttt.w"
-
-/*15:*/
-#line 125 "./ttt.w"
-
-
-/*:15*/
-#line 113 "./ttt.w"
-
-
-/*:11*/
-#line 30 "./ttt.w"
-
-/*16:*/
-#line 129 "./ttt.w"
+/*:29*/
+#line 186 "./ttt.w"
 
 /*20:*/
-#line 160 "./ttt.w"
+#line 195 "./ttt.w"
 
 
 /*:20*/
-#line 130 "./ttt.w"
+#line 187 "./ttt.w"
 
 /*21:*/
-#line 163 "./ttt.w"
+#line 198 "./ttt.w"
 
 
 /*:21*/
-#line 131 "./ttt.w"
+#line 188 "./ttt.w"
 
 /*22:*/
-#line 166 "./ttt.w"
+#line 201 "./ttt.w"
 
 
 /*:22*/
-#line 132 "./ttt.w"
+#line 189 "./ttt.w"
 
 
-/*:16*/
+/*:18*/
+#line 30 "./ttt.w"
+
+/*23:*/
+#line 205 "./ttt.w"
+
+/*26:*/
+#line 218 "./ttt.w"
+
+
+/*:26*/
+#line 206 "./ttt.w"
+
+/*27:*/
+#line 221 "./ttt.w"
+
+
+/*:27*/
+#line 207 "./ttt.w"
+
+/*28:*/
+#line 224 "./ttt.w"
+
+
+/*:28*/
+#line 208 "./ttt.w"
+
+
+/*:23*/
 #line 31 "./ttt.w"
 
 }
-/*24:*/
-#line 175 "./ttt.w"
-/*:24*/
+/*30:*/
+#line 233 "./ttt.w"
+/*:30*/
 #line 33 "./ttt.w"
 
 return(0);
 }
 
-/*:1*//*10:*/
-#line 96 "./ttt.w"
+/*:1*//*17:*/
+#line 172 "./ttt.w"
 
 void newmove(int player,int square,int*gameboard,char*charboard)
 {
 *(gameboard+square)= player;
 *(charboard+charboard_index[square])= playerchar[player];
-printf("%s%s",charboard,divider);
+/*15:*/
+#line 162 "./ttt.w"
+
+printf("%s",charboard);
+
+/*:15*/
+#line 177 "./ttt.w"
+
 return;
 }
 
 
-/*:10*/
+/*:17*/
