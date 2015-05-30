@@ -35,7 +35,7 @@ int main(void) {
 	}
 	
 	printf("\nCut from list\n");
-	for (listitems = 8; listitems < MAXITEMS; ++listitems) {
+	for (listitems = 0; listitems < MAXITEMS; ++listitems) {
 		newmove = get_move();
 		if (newmove == INPUT_ERROR) continue;
 		list = remove_node(list, newmove); 
@@ -88,14 +88,29 @@ node_ptr insert_sorted(node_ptr head, int new_data)
 node_ptr remove_node(node_ptr head, int cut_data)
 {
 	node_ptr list;
+	/* If no list */
 	if (head != NULL) {
 		list = head;
+	}
+	/* If only one list item */	
+	if (list->next == NULL) {
+		list = NULL;
+		free(list);
+		return(NULL);
+	}
+	if (list->data == cut_data) {
+		head = list->next;
+		list = NULL;
+		free(list);
+		return(head);
 	}
 
 	while (list->next != NULL) {
 		if ((list->next)->data == cut_data) {
 			list->next = (list->next)->next;
-			free(list->next);
+			list = list->next;
+			list = NULL;
+			free(list);
 			break;
 		} else {
 			list = list->next;
