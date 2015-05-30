@@ -91,7 +91,8 @@ node_ptr remove_node(node_ptr head, int cut_data)
 	/* If no list */
 	if (head != NULL) {
 		list = head;
-	}
+	} else return(head);
+
 	/* If only one list item */	
 	if (list->next == NULL) {
 		list = NULL;
@@ -111,11 +112,13 @@ node_ptr remove_node(node_ptr head, int cut_data)
 			list = list->next;
 			list = NULL;
 			free(list);
-			break;
+			return(head);
 		} else {
 			list = list->next;
 		}
 	}
+	/* No match found, at end of list */
+	printf("No list item matches %d, none removed.\n", cut_data);
 	return(head);
 }
 
