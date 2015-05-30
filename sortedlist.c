@@ -1,110 +1,113 @@
 /* sortedlist.c -- Andrew Cashner, 2015-05-29 
  * Add numbers to a linked list, keeping list sorted in ascending order.
- * For use in tic-tac-toe game, hence "square" and "position".
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct square *square_ptr;
-typedef struct square {
- 	int position;
-	square_ptr prev;
-	square_ptr next;
-} square;
+typedef struct node *node_ptr;
+typedef struct node {
+ 	int data;
+	node_ptr next;
+} node;
 
 #define MAXLINE 100
-#define MAXMOVES 8
+#define MAXITEMS 8
 #define INPUT_ERROR -1
 
-square_ptr new_movelist(int new_position);
-void add_square(square_ptr list, int new_position);
-void remove_square(square_ptr list, int cut_position);
-void printlist(square_ptr list);
+node_ptr insert_sorted(node_ptr list, int new_data);
+node_ptr remove_node(node_ptr list, int cut_data);
+void printlist(node_ptr list);
 int get_move(void);
 
 int main(void) {
 	int newmove;
-	int totalmoves;
-	square_ptr moves;
+	int listitems;
+	node_ptr list = NULL;
 
-	for (totalmoves = 0; totalmoves < MAXMOVES; ++totalmoves) {
+	printf("\nAdd to list\n");
+	for (listitems = 0; listitems < MAXITEMS; ++listitems) {
 		newmove = get_move();
 		if (newmove == INPUT_ERROR) continue;
-
-		if (totalmoves == 0) {
-			moves = new_movelist(newmove);
-		} else {
-			add_square(moves, newmove);
-		}
-		printlist(moves);
+		list = insert_sorted(list, newmove);
+		printlist(list);
 	}
-/*
-	for (totalmoves = 0; totalmoves < MAXMOVES; ++totalmoves) {
+	
+	printf("\nCut from list\n");
+	for (listitems = 8; listitems < MAXITEMS; ++listitems) {
 		newmove = get_move();
 		if (newmove == INPUT_ERROR) continue;
-		remove_square(moves, newmove); 
-		printlist(moves);
+		list = remove_node(list, newmove); 
+		printlist(list);
 	}
-*/
+
 	return(0);
 }
 
-square_ptr new_movelist(int new_position)
+node_ptr insert_sorted(node_ptr head, int new_data)
 {
-	square_ptr newlist = malloc(sizeof(square_ptr));
-	newlist->position = new_position;
-	newlist->next = newlist->prev = NULL;
-	return(newlist);
-}
+	node_ptr list;
+	node_ptr new_node = malloc(sizeof(node_ptr));
+	new_node->data = new_data;
+	new_node->next = NULL;
 
-void add_square(square_ptr list, int new_position)
-{
-	square_ptr new_square = malloc(sizeof(square_ptr));
-	new_square->position = new_position;
-
-	while (list->prev != NULL) {
-		list = list->prev;
+	/* Create new list if there is none */
+	if (head == NULL) {
+		list = new_node;
+		return(list);
+	} else {
+		list = head;
 	}
-	while (list != NULL) {
-		if (new_position > list->position) {
-			new_square->prev = list;
-			new_square->next = list->next;
-			list->next = new_square;
-			break;
+
+	/* If new node data is less, put at head of list and return head */
+	if (new_data < list->data) {
+		new_node->next = list;
+		return(new_node);
+	}
+
+	while (list->next != NULL) {
+		if (new_data < (list->next)->data) {
+			/* Insert the node mid-list, here */
+			new_node->next = list->next;
+			list->next = new_node;
+			return(head);
 		} else {
-			list->prev = new_square;
-			new_square->next = list;
-			new_square->prev = NULL;
 			list = list->next;
 		}
 	}
-	return;
+	/* If node is greater than all, add it to end of list */
+	list->next = new_node;
+	new_node->next = NULL;
+		
+	/* Return head of list */
+	return(head);
 }
 
-void remove_square(square_ptr list, int cut_position)
+		
+node_ptr remove_node(node_ptr head, int cut_data)
 {
-	square_ptr trash;
-	
-	for ( ; list != NULL; list = list->next) {
-		if ((list->next)->position == cut_position) {
-			trash =  list->next;
+	node_ptr list;
+	if (head != NULL) {
+		list = head;
+	}
+
+	while (list->next != NULL) {
+		if ((list->next)->data == cut_data) {
 			list->next = (list->next)->next;
-			free(trash);
+			free(list->next);
 			break;
+		} else {
+			list = list->next;
 		}
 	}
-	return;
+	return(head);
 }
 
-void printlist(square_ptr list)
+void printlist(node_ptr list)
 {
-	while (list->prev != NULL) {
-		list = list->prev;
-	}
 	for ( ; list != NULL; list = list->next) {
-		printf("%d ", list->position);
+		printf("%d ", list->data);
 	}
 	printf("\n");
 	return;
@@ -115,9 +118,9 @@ int get_move(void)
 	char line[MAXLINE];
 	int newmove;
 	
-	printf("Enter move (0-8): ");
+	printf("Enter move (0-8):\n");
 	fgets(line, sizeof(line), stdin);
-	newmove = line[strlen(line) -2] - '0';
+	sscanf(line, "%d", &newmove);
 	if (newmove < 0 || newmove > 8) {
 		printf("Bad input '%d' -- try again.\n", newmove);
 		return(INPUT_ERROR);
