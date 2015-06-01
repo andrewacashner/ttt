@@ -37,35 +37,6 @@ int main(int argc, char *argv[])
 
 
 
-@ Error messages.
-
-@<Global variables@>=
-static const enum {
-	O_COMMAND_OUT_OF_RANGE,
-	O_COMMAND_FAULTY,
-	SQUARE_NOT_EMPTY
-} error_msg;
-
-static const char *error[] = {
-	"That square is not on the board. "
-		"Enter A1, A2, A3, B1, B2, B3, C1, C2, or C3.",
-
-	"I don't understand your command. "
-		"Enter a label like A1 and press [ENTER].",
-
-	"That square is already taken. Choose another."
-};
-static const char greeting[] = {
-	"\nTIC TAC TOE\n"
-	"I play X. You play O. You go first.\n"
-	"Use one of the labels shown below to say where you will move.\n"
-	"\n A1 | A2 | A3 \n-----------\n"
-	" B1 | B2 | B3 \n-----------\n" 
-	" C1 | C2 | C3\n\n"
-	"Let's play!"
-};
-
-
 @ Process command-line options.
 @<Process command-line options@>=
 
@@ -74,7 +45,7 @@ static const char greeting[] = {
 @d MAXLINE 100
 
 @<Main variables@>=
-char line[MAXLINE];
+char input_line[MAXLINE];
 int nextOmove;
 int squares_filled; /* Total squares filled on board */
 
@@ -84,32 +55,93 @@ The command is entered in the form \.{A1\\n}.
 \.{'A1'} is $0 + 0$, \.{'B2'} is $3 + 1$.
 
 @<Get O move, update board@>=
-while (1) {
-	printf("Your move?\n");
-	fgets(line, sizeof(line), stdin);
-	if (line[2] != '\n' || 
-	    line[0] < 'A' || line[0] > 'C' ||
-	    line[1] < '1' || line[1] > '3' ) {
-		printf("%s\n", error[O_COMMAND_OUT_OF_RANGE]);
+while (1) {  
+@#
+	printf("Your move?\n"); 
+	fgets(input_line, sizeof(input_line), stdin); 
+@#
+	if (input_line[2] != '\n' ||
+	    input_line[0] < 'A' || input_line[0] > 'C' ||
+	    input_line[1] < '1' || input_line[1] > '3' ) {  
+		printf("%s\n", error[O_COMMAND_OUT_OF_RANGE]); @+
 		continue;
-	}
-	nextOmove = (line[0] - 'A') * 3;
-	nextOmove += line[1] - '1'; 
-	if (newmove(OPLAYER, nextOmove, gameboard_ptr, charboard_ptr) ==
-	NOTEMPTY) {
-		printf("%s\n", error[SQUARE_NOT_EMPTY]);
-	} else {
+	} 
+@#
+	nextOmove = (input_line[0] - 'A') * 3;
+	nextOmove += input_line[1] - '1'; 
+	if (newmove(OPLAYER, nextOmove, gameboard_ptr, charboard_ptr) !=
+		OCCUPIED) {
 		++squares_filled;
+		listOmoves = insert_sorted(listOmoves, newOmove);
 		break;
+	} else {
+		printf("%s\n", error[SQUARE_OCCUPIED]);
 	}
+@#
 }
 
+@ Insert new moves into list of moves for a particular player, keeping list
+sorted in ascending order.
+
+@<Global variables@>=
+typedef struct square *square_ptr;
+typedef struct square {
+	int position;
+	square_ptr next;
+} square;
+
+@ Function to insert items into linked list.
+
+@p
+square_ptr insert_sorted(square_ptr head, int new_position)
+{
+	square_ptr list;
+	square_ptr new_square = malloc(sizeof(square_ptr));
+	new_square->position = new_position;
+	new_square->next = NULL;
+
+	/* Create new list if there is none */
+	if (head == NULL) {
+		list = new_square;
+		return(list);
+	} else {
+		list = head;
+	}
+
+	/* If new position is less, put at head of list and return head */
+	if (new_position < list->position) {
+		new_square->next = list;
+		return(new_square);
+	}
+
+	/* Loop through to find mid-list insertion point */
+	while (list->next != NULL) {
+		if (new_position < (list->next)->data) {
+			/* Insert the node mid-list, here */
+			new_square->next = list->next;
+			list->next = new_square;
+			return(head);
+		} else { 
+			list = list->next;
+		}
+	}
+
+	/* If node is greatest of all, add it to end of list */
+	list->next = new_square;
+	new_square->next = NULL;
+
+	/* Return head of list */
+	return(head);
+}
+
+@ @<Function prototypes@>=
+square_ptr insert_sorted(square_ptr head, int new_position);
 
 @* Printing the game board.
 
-@ Switching tables needed to draw the board, and update the drawing.
+@ Set up switching tables needed to draw the board, and update the drawing.
 
-@<Global variables@>=
+@ @<Global variables@>=
 static const int charboard_index[] = 
 	{ 2, 6, 10,
 	 26, 30, 34,
@@ -131,7 +163,7 @@ squares of |gameboard| are filled.
 
 @d CHAR_BOARD_LENGTH 62
 
-@<Main variables@>=
+@ @<Main variables@>=
 int gameboard[9] = { 0, 0, 0,  0, 0, 0,  0, 0, 0 }; /* Start empty */
 char charboard[] = 
 	"\n   |   |   \n"
@@ -144,12 +176,11 @@ char *charboard_ptr = charboard;
 
 
 @ Switching table with winning series.
+These are all the triples that win the game.
 
 @d MAXANSWERS 8
 @d NOTFOUND -1
 @d MAXPERMS 24
-
-@ These are all the triples that win the game.
 
 @<Global variables@>=
 static const int answer[8][3] = {
@@ -179,13 +210,13 @@ int newmove(int player, int square, int *gameboard, char *charboard);
 
 @ The function updates the gameboard with a new move.
 
-@d NOTEMPTY -10
+@d OCCUPIED -10
 
 @p
 int newmove(int player, int square, int *gameboard, char *charboard)
 {
 	if (*(gameboard + square) != EMPTY) {
-		return(NOTEMPTY);
+		return(OCCUPIED);
 	}
 	*(gameboard + square) = player;
 	*(charboard + charboard_index[square]) = playerchar[player];
@@ -257,7 +288,7 @@ int i;
 @<Choose free spot@>=
 for (i = 0; i < total_best_moves; ++i) {
 	if (newmove(XPLAYER, best_moves[i], gameboard_ptr, charboard_ptr) !=
-	NOTEMPTY)
+	OCCUPIED)
 		break;
 }
 ++squares_filled;
@@ -265,3 +296,34 @@ for (i = 0; i < total_best_moves; ++i) {
 @* Game-over routine.
 @<Gameover routine@>=
 printf("Game over!\n");
+
+
+@ Error messages.
+
+@<Global variables@>=
+static const enum {
+	O_COMMAND_OUT_OF_RANGE,
+	O_COMMAND_FAULTY,
+	SQUARE_OCCUPIED
+} error_msg;
+
+static const char *error[] = {
+	"That square is not on the board. "
+		"Enter A1, A2, A3, B1, B2, B3, C1, C2, or C3.",
+
+	"I don't understand your command. "
+		"Enter a label like A1 and press [ENTER].",
+
+	"That square is already taken. Choose another."
+};
+static const char greeting[] = {
+	"\nTIC TAC TOE\n"
+	"I play X. You play O. You go first.\n"
+	"Use one of the labels shown below to say where you will move.\n"
+	"\n A1 | A2 | A3 \n-----------\n"
+	" B1 | B2 | B3 \n-----------\n" 
+	" C1 | C2 | C3\n\n"
+	"Let's play!"
+};
+
+
