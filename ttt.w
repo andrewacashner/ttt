@@ -17,8 +17,8 @@ typedef enum {FALSE, TRUE} boolean;
 int main(int argc, char *argv[])
 {
 	@<Main variables@>@;
-	boolean gameover;
-	gameover = FALSE;
+	boolean bool_gameover;
+	bool_gameover = FALSE;
 
 	@<Process command-line options@>@;
 	@<Populate switching tables@>@;
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 	printf("%s\n", greeting);
 	@<Draw board@>@;
 
-	while (gameover == FALSE) {
+	while (bool_gameover == FALSE) {
 		@<Get O move, update board@>@;
 		@<Process last move@>@;
 		@<Prepare next move@>@;
@@ -49,6 +49,7 @@ char input_line[MAXLINE];
 int nextOmove;
 int squares_filled; /* Total squares filled on board */
 square_ptr listOmoves = NULL;
+int winner = EMPTY;
 
 @ Check O command for validity and set |nextOmove|.
 The command is entered in the form \.{A1\\n}.
@@ -244,8 +245,70 @@ int newmove(int player, int square, int *gameboard, char *charboard)
 
 @ TODO
 @<Test for win 3/3@>=
+printf("Checking for O win...\n");
+if (check_triple(listOmoves) == TRUE) {
+	bool_gameover = TRUE;
+	winner = OPLAYER;
+}
+
 /* Test X values for 3/3 */
 /* Test O values for 3/3 */
+
+@ Function to test player's board positions for winning series, 3 out of 3.
+
+@p
+boolean check_triple(square_ptr head)
+{
+	square_ptr list;
+	int i;
+	int a, b, c; /* Test values */
+	boolean bool_win;
+
+	if (head == NULL) {
+		return(EXIT_FAILURE);
+	} else {
+		list = head;
+	}
+	
+	a = list->position;
+	if (list->next == NULL) {
+		b = c = 0;
+	} else {
+		list = list->next;
+		b = list->position;
+		if (list->next != NULL) {
+			list = list->next;
+			c = list->position;
+		} else c = 0;
+	}
+
+	printf("Checking these values: %d %d %d\n", a, b, c);
+
+	for (bool_win = FALSE; list != NULL; list = list->next) {
+		for (i = 0; i < MAXANSWERS; ++i) {
+			if (answer[i][0] == a && 
+			    answer[i][1] == b && 
+			    answer[i][2] == c) {
+				printf("Triple found.\n");
+				bool_win = TRUE;
+				return(bool_win);
+			} 
+		}
+		/* If no match found, try next set of three consecutive
+		 * positions from linked list */
+		if (list->next != NULL) {
+			list = list->next;
+			a = b;
+			b = c;
+			c = list->position;
+		} else break;
+	}
+
+	return(bool_win);
+}
+
+@ @<Function prototypes@>=
+boolean check_triple(square_ptr head);
 
 @ Update X positions.
 
@@ -267,8 +330,12 @@ int newmove(int player, int square, int *gameboard, char *charboard)
 	@<Test for X runs 2/3@>@;
 	@<Test for O runs 2/3@>@; 
 	@<Choose free spot@>@;
-	if (squares_filled > 8) {
-		gameover = TRUE;  
+	printf("Checking for X win...\n");
+	if (check_triple(listXmoves) == TRUE) {
+		bool_gameover = TRUE;
+		winner = XPLAYER;
+	} else if (squares_filled > 8) {
+		bool_gameover = TRUE;  
 	}
 
 @ Test for two in a row, and if found, return the third member.
@@ -322,8 +389,13 @@ void print_movelist(square_ptr list)
 void print_movelist(square_ptr list);
 
 @* Game-over routine.
+
 @<Gameover routine@>=
-printf("Game over!\n");
+		
+printf("\n*** Game over! ***\n");
+if (winner == EMPTY) {
+	printf("***   DRAW.    ***\n");
+} else printf("***  %c WINS.   ***\n\n", playerchar[winner]);
 
 
 @ Error messages.

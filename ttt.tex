@@ -72,8 +72,7 @@ ${}\\{nextOmove}\MRL{+{\K}}\\{input\_line}[\T{1}]-\.{'1'};$ \6
 \\{charboard\_ptr})\I\.{OCCUPIED}){}$\5
 ${}\{{}$\1\6
 ${}\PP\\{squares\_filled};{}$\6
-${}\\{listOmoves}\K\\{insert\_sorted}(\\{listOmoves},\39\\{nextOmove}){}$;\C{
-DEBUG }\6
+${}\\{listOmoves}\K\\{insert\_sorted}(\\{listOmoves},\39\\{nextOmove});{}$\6
 \\{printf}(\.{"O\ moves:\ "});\6
 \\{print\_movelist}(\\{listOmoves});\6
 \&{break};\6
@@ -328,7 +327,7 @@ ${}\{{}$\1\6
 ${}\{{}$\1\6
 ${}\PP\\{squares\_filled};{}$\6
 ${}\\{listXmoves}\K\\{insert\_sorted}(\\{listXmoves},\39\\{best\_moves}[%
-\|i]){}$;\C{ DEBUG }\6
+\|i]);{}$\6
 \\{printf}(\.{"X\ moves:\ "});\6
 \\{print\_movelist}(\\{listXmoves});\6
 \&{break};\6
