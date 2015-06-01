@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
 char input_line[MAXLINE];
 int nextOmove;
 int squares_filled; /* Total squares filled on board */
+square_ptr listOmoves = NULL;
 
 @ Check O command for validity and set |nextOmove|.
 The command is entered in the form \.{A1\\n}.
@@ -57,7 +58,7 @@ The command is entered in the form \.{A1\\n}.
 @<Get O move, update board@>=
 while (1) {  
 @#
-	printf("Your move?\n"); 
+	printf("\nYour move?\n"); 
 	fgets(input_line, sizeof(input_line), stdin); 
 @#
 	if (input_line[2] != '\n' ||
@@ -72,7 +73,9 @@ while (1) {
 	if (newmove(OPLAYER, nextOmove, gameboard_ptr, charboard_ptr) !=
 		OCCUPIED) {
 		++squares_filled;
-		listOmoves = insert_sorted(listOmoves, newOmove);
+		listOmoves = insert_sorted(listOmoves, nextOmove);
+		printf("O moves: ");
+		print_movelist(listOmoves);
 		break;
 	} else {
 		printf("%s\n", error[SQUARE_OCCUPIED]);
@@ -116,7 +119,7 @@ square_ptr insert_sorted(square_ptr head, int new_position)
 
 	/* Loop through to find mid-list insertion point */
 	while (list->next != NULL) {
-		if (new_position < (list->next)->data) {
+		if (new_position < (list->next)->position) {
 			/* Insert the node mid-list, here */
 			new_square->next = list->next;
 			list->next = new_square;
@@ -151,6 +154,11 @@ static const enum {
 	A1, A2, A3, 
 	B1, B2, B3,
 	C1, C2, C3 } squareID;
+
+static const char *square_label[] = {
+	"A1", "A2", "A3",
+	"B1", "B2", "B3",
+	"C1", "C2", "C3" };
 
 static const enum { EMPTY, XPLAYER, OPLAYER } playerID;
 static const char playerchar[] = {' ', 'X', 'O'};
@@ -282,16 +290,36 @@ int twoofthree(int test[], int test_array_length, int perms[][3]);
 int best_moves[] = {B2, A1, A3, C1, C3, A2, B1, B3, C2};
 int total_best_moves = 8;
 int i;
+square_ptr listXmoves = NULL;
 
 @ Loop through list of optimal squares and select one that is not occupied.
 
 @<Choose free spot@>=
 for (i = 0; i < total_best_moves; ++i) {
 	if (newmove(XPLAYER, best_moves[i], gameboard_ptr, charboard_ptr) !=
-	OCCUPIED)
+	OCCUPIED) {
+		++squares_filled;
+		listXmoves = insert_sorted(listXmoves, best_moves[i]);
+		printf("X moves: ");
+		print_movelist(listXmoves);
 		break;
+	}
 }
-++squares_filled;
+
+@ Print current list of moves (for testing purposes only).
+
+@p
+void print_movelist(square_ptr list)
+{
+	for ( ; list != NULL; list = list->next) {
+		printf("%s ", square_label[list->position]);
+	}
+	printf("\n");
+	return;
+}
+
+@ @<Function prototypes@>=
+void print_movelist(square_ptr list);
 
 @* Game-over routine.
 @<Gameover routine@>=
