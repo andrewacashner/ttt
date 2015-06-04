@@ -203,9 +203,35 @@ static const int answer[8][3] = {
 	{6, 7, 8} 
 };
 
-@ Switching tables created in |main|.
-@ Set up switching table of permutations.
-@<Populate switching tables@>=
+@ Set up switching table of permutations; we have to do this in |main|.
+
+@d MAXPERMS 24
+
+@<Main variables@>=
+int perms[MAXPERMS][3]; /* Permutations of answer triples where [0] < [1] */
+int a, b, c; /* Single test values */
+int j; /* Loop counter */
+
+@ @<Populate switching tables@>=
+
+/* Build table of permutations */
+for (i = 0, j = 0; i < MAXANSWERS; ++i) {	
+	a = answer[i][0];
+	b = answer[i][1];
+	c = answer[i][2];
+	perms[j][0] = a;
+	perms[j][1] = b;
+	perms[j][2] = c;
+	++j;
+	perms[j][0] = a;
+	perms[j][1] = c;
+	perms[j][2] = b;
+	++j;
+	perms[j][0] = b;
+	perms[j][1] = c;
+	perms[j][2] = a;
+	++j;
+}
 
 @ Draw the board. We simply print |charboard| to |stdout|.
 
@@ -234,25 +260,80 @@ int newmove(int player, int square, int *gameboard, char *charboard)
 }
 
 
-@ Process the X and O moves of turn just completed.
+@* Process the X and O moves of turn just completed, and prepare next X move.
 
-@<Process last move@>=
-	@<Test for win 3/3@>@;
-	@<Update X positions@>@;
-	@<Update O positions@>@;
-	@<Eliminate X wins@>@;
-	@<Eliminate O wins@>@;
+@<Main variables@>=
+int best_moves[] = {B2, A1, A3, C1, C3, A2, B1, B3, C2};
+int total_best_moves = 8;
+int i;
+square_ptr listXmoves = NULL;
+int nextXmove;
+boolean bool_next_move_found = FALSE;
 
-@ TODO
-@<Test for win 3/3@>=
+
+@ @<Process last move@>=
+/* Test O values for 3/3 */
 printf("Checking for O win...\n");
 if (check_triple(listOmoves) == TRUE) {
 	bool_gameover = TRUE;
 	winner = OPLAYER;
 }
 
-/* Test X values for 3/3 */
-/* Test O values for 3/3 */
+@ Prepare next move.
+Loop through list of optimal squares and select one that is not occupied.
+
+@<Prepare next move@>=
+/* Check if O has 2/3; if so, move to missing 3rd spot */
+nextXmove = twoofthree(listOmoves, perms);
+
+/* If there is no 2/3 run for O, check if X has 2/3 and move to third spot to win */
+if (nextXmove == ERROR) {
+	nextXmove = twoofthree(listXmoves, perms);
+} else {
+	bool_next_move_found = TRUE;
+	bool_gameover = TRUE;
+	winner = XPLAYER;
+}
+
+/* If there is no 2/3 run for O or X, then choose any favored free spot from
+ * |best_moves| */
+ if (nextXmove == ERROR) {
+	for (i = 0; i < total_best_moves; ++i) {
+		nextXmove = best_moves[i];
+		if (newmove(XPLAYER, nextXmove, gameboard_ptr, charboard_ptr) !=
+		OCCUPIED) {
+			bool_next_move_found = TRUE;
+			break;
+		}
+	}
+}
+
+/* Test |nextXmove| and update board */
+if (bool_next_move_found == TRUE) {
+	++squares_filled;
+	listXmoves = insert_sorted(listXmoves, best_moves[i]);
+	printf("X moves: ");
+	print_movelist(listXmoves);
+} else { /* DEBUG */
+	printf("Error finding X move");
+	exit(EXIT_FAILURE);
+}
+
+
+/* Test X values for 3/3 
+printf("Checking for X win...\n");
+if (check_triple(listXmoves) == TRUE) {
+	bool_gameover = TRUE;
+	winner = XPLAYER;
+} else if (squares_filled > 8) {
+	bool_gameover = TRUE;  
+}
+*/
+
+if (squares_filled > 8) {
+	bool_gameover = TRUE;  
+	winner = EMPTY;
+}
 
 @ Function to test player's board positions for winning series, 3 out of 3.
 
@@ -310,68 +391,41 @@ boolean check_triple(square_ptr head)
 @ @<Function prototypes@>=
 boolean check_triple(square_ptr head);
 
-@ Update X positions.
-
-@<Update X positions@>=
 
 
-@ TODO
-@<Update O positions@>=
 
-@ TODO
-@<Eliminate X wins@>=
+@ Function to test for two in a row, and if found, return the third member.
 
-@ TODO
-@<Eliminate O wins@>=
+@d ERROR -6
 
-@ Prepare the next X move.
+@p
+int twoofthree(square_ptr head, int perms[][3])
+{
+	int i, p;
+	square_ptr list;
 
-@<Prepare next move@>=
-	@<Test for X runs 2/3@>@;
-	@<Test for O runs 2/3@>@; 
-	@<Choose free spot@>@;
-	printf("Checking for X win...\n");
-	if (check_triple(listXmoves) == TRUE) {
-		bool_gameover = TRUE;
-		winner = XPLAYER;
-	} else if (squares_filled > 8) {
-		bool_gameover = TRUE;  
+	if (head == NULL) {
+		return(ERROR);
+	} else {
+		list = head;
 	}
 
-@ Test for two in a row, and if found, return the third member.
-
-@ Function to test two in a row.
-
-@<Function prototypes@>=
-int twoofthree(int test[], int test_array_length, int perms[][3]);
-
-@ TODO
-@<Test for X runs 2/3@>=
-
-@ TODO
-@<Test for O runs 2/3@>=
-
-@ Move X to any optimal square.
-
-@<Main variables@>=
-int best_moves[] = {B2, A1, A3, C1, C3, A2, B1, B3, C2};
-int total_best_moves = 8;
-int i;
-square_ptr listXmoves = NULL;
-
-@ Loop through list of optimal squares and select one that is not occupied.
-
-@<Choose free spot@>=
-for (i = 0; i < total_best_moves; ++i) {
-	if (newmove(XPLAYER, best_moves[i], gameboard_ptr, charboard_ptr) !=
-	OCCUPIED) {
-		++squares_filled;
-		listXmoves = insert_sorted(listXmoves, best_moves[i]);
-		printf("X moves: ");
-		print_movelist(listXmoves);
-		break;
+	for (i = 0; list != NULL; list = list->next, ++i) { /* Test values */
+		for (p = 0; p < MAXPERMS; ++p) { /* $2/3$ perms $x$ indices */
+			if (list->position == perms[p][0]) {
+				if (list->next != NULL 
+				&& (list->next)->position == perms[p][1]) {
+					return(perms[p][2]);
+				}
+			}
+		}
 	}
+	return(ERROR);
 }
+
+@ @<Function prototypes@>=
+int twoofthree(square_ptr head, int perms[][3]);
+
 
 @ Print current list of moves (for testing purposes only).
 

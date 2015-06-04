@@ -6,7 +6,11 @@
 #define NOTFOUND -1
 #define MAXPERMS 24 \
 
+#define MAXPERMS 24 \
+
 #define OCCUPIED -10 \
+
+#define ERROR -6 \
 
 /*1:*/
 #line 7 "./ttt.w"
@@ -59,8 +63,8 @@ static const int answer[8][3]= {
 {6,7,8}
 };
 
-/*:13*//*37:*/
-#line 403 "./ttt.w"
+/*:13*//*29:*/
+#line 457 "./ttt.w"
 
 static const enum{
 O_COMMAND_OUT_OF_RANGE,
@@ -87,7 +91,7 @@ static const char greeting[]= {
 "Let's play!"
 };
 
-/*:37*/
+/*:29*/
 #line 12 "./ttt.w"
 
 typedef enum{FALSE,TRUE}boolean;
@@ -98,26 +102,30 @@ typedef enum{FALSE,TRUE}boolean;
 square_ptr insert_sorted(square_ptr head,int new_position);
 
 /*:7*//*17:*/
-#line 217 "./ttt.w"
+#line 243 "./ttt.w"
 
 int newmove(int player,int square,int*gameboard,char*charboard);
 
-/*:17*//*22:*/
-#line 310 "./ttt.w"
+/*:17*//*23:*/
+#line 391 "./ttt.w"
 
 boolean check_triple(square_ptr head);
 
-/*:22*//*29:*/
-#line 345 "./ttt.w"
 
-int twoofthree(int test[],int test_array_length,int perms[][3]);
 
-/*:29*//*35:*/
-#line 388 "./ttt.w"
+
+/*:23*//*25:*/
+#line 426 "./ttt.w"
+
+int twoofthree(square_ptr head,int perms[][3]);
+
+
+/*:25*//*27:*/
+#line 442 "./ttt.w"
 
 void print_movelist(square_ptr list);
 
-/*:35*/
+/*:27*/
 #line 15 "./ttt.w"
 
 
@@ -146,15 +154,25 @@ int*gameboard_ptr= gameboard;
 char*charboard_ptr= charboard;
 
 
-/*:12*//*32:*/
-#line 356 "./ttt.w"
+/*:12*//*14:*/
+#line 210 "./ttt.w"
+
+int perms[MAXPERMS][3];
+int a,b,c;
+int j;
+
+/*:14*//*19:*/
+#line 265 "./ttt.w"
 
 int best_moves[]= {B2,A1,A3,C1,C3,A2,B1,B3,C2};
 int total_best_moves= 8;
 int i;
 square_ptr listXmoves= NULL;
+int nextXmove;
+boolean bool_next_move_found= FALSE;
 
-/*:32*/
+
+/*:19*/
 #line 19 "./ttt.w"
 
 boolean bool_gameover;
@@ -168,8 +186,27 @@ bool_gameover= FALSE;
 #line 23 "./ttt.w"
 
 /*15:*/
-#line 208 "./ttt.w"
+#line 215 "./ttt.w"
 
+
+
+for(i= 0,j= 0;i<MAXANSWERS;++i){
+a= answer[i][0];
+b= answer[i][1];
+c= answer[i][2];
+perms[j][0]= a;
+perms[j][1]= b;
+perms[j][2]= c;
+++j;
+perms[j][0]= a;
+perms[j][1]= c;
+perms[j][2]= b;
+++j;
+perms[j][0]= b;
+perms[j][1]= c;
+perms[j][2]= a;
+++j;
+}
 
 /*:15*/
 #line 24 "./ttt.w"
@@ -177,7 +214,7 @@ bool_gameover= FALSE;
 
 printf("%s\n",greeting);
 /*16:*/
-#line 212 "./ttt.w"
+#line 238 "./ttt.w"
 
 printf("%s",charboard);
 
@@ -219,11 +256,9 @@ printf("%s\n",error[SQUARE_OCCUPIED]);
 /*:4*/
 #line 30 "./ttt.w"
 
-/*19:*/
-#line 239 "./ttt.w"
-
 /*20:*/
-#line 247 "./ttt.w"
+#line 274 "./ttt.w"
+
 
 printf("Checking for O win...\n");
 if(check_triple(listOmoves)==TRUE){
@@ -231,102 +266,79 @@ bool_gameover= TRUE;
 winner= OPLAYER;
 }
 
-
-
-
 /*:20*/
-#line 240 "./ttt.w"
-
-/*23:*/
-#line 315 "./ttt.w"
-
-
-
-/*:23*/
-#line 241 "./ttt.w"
-
-/*24:*/
-#line 319 "./ttt.w"
-
-
-/*:24*/
-#line 242 "./ttt.w"
-
-/*25:*/
-#line 322 "./ttt.w"
-
-
-/*:25*/
-#line 243 "./ttt.w"
-
-/*26:*/
-#line 325 "./ttt.w"
-
-
-/*:26*/
-#line 244 "./ttt.w"
-
-
-/*:19*/
 #line 31 "./ttt.w"
 
-/*27:*/
-#line 329 "./ttt.w"
-
-/*30:*/
-#line 349 "./ttt.w"
+/*21:*/
+#line 285 "./ttt.w"
 
 
-/*:30*/
-#line 330 "./ttt.w"
-
-/*31:*/
-#line 352 "./ttt.w"
+nextXmove= twoofthree(listOmoves,perms);
 
 
-/*:31*/
-#line 331 "./ttt.w"
+if(nextXmove==ERROR){
+nextXmove= twoofthree(listXmoves,perms);
+}else{
+bool_next_move_found= TRUE;
+bool_gameover= TRUE;
+winner= XPLAYER;
+}
 
-/*33:*/
-#line 364 "./ttt.w"
 
+
+if(nextXmove==ERROR){
 for(i= 0;i<total_best_moves;++i){
-if(newmove(XPLAYER,best_moves[i],gameboard_ptr,charboard_ptr)!=
+nextXmove= best_moves[i];
+if(newmove(XPLAYER,nextXmove,gameboard_ptr,charboard_ptr)!=
 OCCUPIED){
+bool_next_move_found= TRUE;
+break;
+}
+}
+}
+
+
+if(bool_next_move_found==TRUE){
 ++squares_filled;
 listXmoves= insert_sorted(listXmoves,best_moves[i]);
 printf("X moves: ");
 print_movelist(listXmoves);
-break;
-}
+}else{
+printf("Error finding X move");
+exit(EXIT_FAILURE);
 }
 
-/*:33*/
-#line 332 "./ttt.w"
 
-printf("Checking for X win...\n");
-if(check_triple(listXmoves)==TRUE){
+
+
+
+
+
+
+
+
+
+
+if(squares_filled> 8){
 bool_gameover= TRUE;
-winner= XPLAYER;
-}else if(squares_filled> 8){
-bool_gameover= TRUE;
+winner= EMPTY;
 }
 
-/*:27*/
+/*:21*/
 #line 32 "./ttt.w"
 
 }
-/*36:*/
-#line 393 "./ttt.w"
+/*28:*/
+#line 447 "./ttt.w"
 
 
 printf("\n*** Game over! ***\n");
 if(winner==EMPTY){
-printf("***    DRAW.    ***\n");
+printf("***   DRAW.    ***\n");
 }else printf("***  %c WINS.   ***\n\n",playerchar[winner]);
 
 
-/*:36*/
+/*:28*/
 #line 34 "./ttt.w"
 
 return(0);
@@ -379,7 +391,7 @@ return(head);
 }
 
 /*:6*//*18:*/
-#line 224 "./ttt.w"
+#line 250 "./ttt.w"
 
 int newmove(int player,int square,int*gameboard,char*charboard)
 {
@@ -389,19 +401,19 @@ return(OCCUPIED);
 *(gameboard+square)= player;
 *(charboard+charboard_index[square])= playerchar[player];
 /*16:*/
-#line 212 "./ttt.w"
+#line 238 "./ttt.w"
 
 printf("%s",charboard);
 
 /*:16*/
-#line 232 "./ttt.w"
+#line 258 "./ttt.w"
 
 return(0);
 }
 
 
-/*:18*//*21:*/
-#line 259 "./ttt.w"
+/*:18*//*22:*/
+#line 340 "./ttt.w"
 
 boolean check_triple(square_ptr head)
 {
@@ -453,8 +465,35 @@ c= list->position;
 return(bool_win);
 }
 
-/*:21*//*34:*/
-#line 378 "./ttt.w"
+/*:22*//*24:*/
+#line 401 "./ttt.w"
+
+int twoofthree(square_ptr head,int perms[][3])
+{
+int i,p;
+square_ptr list;
+
+if(head==NULL){
+return(ERROR);
+}else{
+list= head;
+}
+
+for(i= 0;list!=NULL;list= list->next,++i){
+for(p= 0;p<MAXPERMS;++p){
+if(list->position==perms[p][0]){
+if(list->next!=NULL
+&&(list->next)->position==perms[p][1]){
+return(perms[p][2]);
+}
+}
+}
+}
+return(ERROR);
+}
+
+/*:24*//*26:*/
+#line 432 "./ttt.w"
 
 void print_movelist(square_ptr list)
 {
@@ -465,4 +504,4 @@ printf("\n");
 return;
 }
 
-/*:34*/
+/*:26*/
