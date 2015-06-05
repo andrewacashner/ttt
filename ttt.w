@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 
 	while (bool_gameover == FALSE) {
 		@<Get O move, update board@>@;
-		@<Process last move@>@;
+		@<Check for O win@>@;
 		@<Prepare next move@>@;
 	}
 	@<Gameover routine@>@;
@@ -40,21 +40,24 @@ int main(int argc, char *argv[])
 Set up switching tables needed to draw the board, and update the drawing.
 
 @<Global variables@>=
-static const int charboard_index[] = 
-	{ 2, 6, 10,
-	 26, 30, 34,
-	 50, 54, 58 };
+static const int charboard_index[] = { 
+@/	  2, 6, 10,
+@/	 26, 30, 34,
+@/	 50, 54, 58 
+@/
+};
 	 
 static const enum {
-	A1, A2, A3, 
-	B1, B2, B3,
-	C1, C2, C3 } squareID;
+@/	A1, A2, A3, 
+@/	B1, B2, B3,
+@/	C1, C2, C3 } squareID;
 
 static const char *square_label[] = {
-	"A1", "A2", "A3",
-	"B1", "B2", "B3",
-	"C1", "C2", "C3" };
-
+@/	"A1", "A2", "A3",
+@/	"B1", "B2", "B3",
+@/	"C1", "C2", "C3" 
+@/
+};
 static const enum { EMPTY, XPLAYER, OPLAYER } playerID;
 static const char playerchar[] = {' ', 'X', 'O'};
 
@@ -68,12 +71,12 @@ squares of |gameboard| are filled.
 
 @<Main variables@>=
 int gameboard[9] = { 0, 0, 0,  0, 0, 0,  0, 0, 0 }; /* Start empty */
-char charboard[] = 
-	"\n   |   |   \n"
-	"-----------\n"
-	"   |   |   \n"
-	"-----------\n"
-	"   |   |   \n\n";
+char charboard[] =  
+@/	"\n   |   |   \n"
+@/	"-----------\n" 
+@/	"   |   |   \n" 
+@/	"-----------\n" 
+@/	"   |   |   \n\n";
 int *gameboard_ptr = gameboard;
 char *charboard_ptr = charboard;
 
@@ -89,19 +92,18 @@ Set up a table of permutations of these triples in which the first two are in
 ascending order (to find runs of 2/3).
 
 @d MAXANSWERS 8
-@d MAXPERMS 24
-@d NOTFOUND -1
 
 @<Global variables@>=
 static const int answer[8][3] = {
-	{0, 1, 2}, 
-	{0, 3, 6}, 
-	{0, 4, 8}, 
-	{1, 4, 7}, 
-	{2, 4, 6}, 
-	{2, 5, 8}, 
-	{3, 4, 5}, 
-	{6, 7, 8} 
+@/	{0, 1, 2}, 
+@/	{0, 3, 6}, 
+@/	{0, 4, 8}, 
+@/	{1, 4, 7}, 
+@/	{2, 4, 6}, 
+@/	{2, 5, 8}, 
+@/	{3, 4, 5}, 
+@/	{6, 7, 8} 
+@/
 };
 
 @ Set up switching table of permutations; we have to do this in |main|.
@@ -196,12 +198,11 @@ square_ptr insert_sorted(square_ptr head, int new_position);
 @* Updating the game board.
 
 @p
-int newmove(int player, int square, int *gameboard, char *charboard)
+int newmove(int player, int position, int *gameboard, char *charboard) 
 {
-@#
-	*(gameboard + square) = player;
-	*(charboard + charboard_index[square]) = playerchar[player];
-	return(0);
+	*(gameboard + position) = player;
+	*(charboard + charboard_index[position]) = playerchar[player];
+	return(0); 
 }
 
 @ @<Function prototypes@>=
@@ -216,6 +217,8 @@ char input_line[MAXLINE];
 int nextOmove;
 int squares_filled; /* Total squares filled on board */
 square_ptr listOmoves = NULL;
+int total_O_moves = 0;
+int total_X_moves = 0; /* Counter per player of moves on board */
 int winner = EMPTY;
 
 @ Check O command for validity and set |nextOmove|.
@@ -240,11 +243,12 @@ while (1) {
 	nextOmove += input_line[1] - '1'; 
 	if (gameboard[nextOmove] == EMPTY) {
 		newmove(OPLAYER, nextOmove, gameboard_ptr, charboard_ptr);
+		@<Draw board@>@;
 		++squares_filled;
+		++total_O_moves;
 		listOmoves = insert_sorted(listOmoves, nextOmove);
 		printf("O moves: ");
 		print_movelist(listOmoves);
-		@<Draw board@>@;
 		break;
 	} else {
 		printf("%s\n", error[SQUARE_OCCUPIED]);
@@ -263,48 +267,54 @@ int nextXmove;
 int test;
 
 
-@ @<Process last move@>=
-/* Test O values for 3/3 */
-printf("Checking for O win...\n");
-if (check_triple(listOmoves) == TRUE) {
-	bool_gameover = TRUE;
-	winner = OPLAYER;
+@ See if O wins by having three in a row.
+
+@<Check for O win@>=
+if (total_O_moves > 2) {
+	test = two_of_three(OPLAYER, listOmoves, perms, gameboard_ptr);
+	if (test == O_WINS) {
+		bool_gameover = TRUE;
+		winner = OPLAYER;
+	} 
 }
 
 @ Prepare next move.
+Test O values for 3/3; if so, O wins.
+If not, check if X has 2/3; if so, move to missing 3rd spot to win.
+If there is no 2/3 run for X, check if O has 2/3 and move to third spot to block
+O from winning.
+If there is no 2/3 run for O or X, then choose any favored free spot from
+|best_moves|.
+Finally, add |nextXmove| to the list of X moves and update the board.
+If all the squares are filled, the game is over automatically.
 
 @<Prepare next move@>=
-@#
-/* Check if O has 2/3; if so, move to missing 3rd spot */
-test = twoofthree(listOmoves, perms);
-printf("%s = test = twoofthree(listOmoves, perms)\n", square_label[test]);
 
-if (test != ERROR) {
-	nextXmove = test;
+if (total_X_moves < 1) {
+	@<Pick any free spot@>@;
 } else {
-/* If there is no 2/3 run for O, check if X has 2/3 and move to third spot to win */
-	test = twoofthree(listXmoves, perms);
-	if (test != ERROR) {
+	test = two_of_three(XPLAYER, listXmoves, perms, gameboard_ptr);
+
+	if (test != NOTFOUND) {
+		printf("I found a matching triple of X positions.\n");
 		nextXmove = test;
 		bool_gameover = TRUE;
 		winner = XPLAYER;
 	} else {
-	/* If there is no 2/3 run for O or X, then choose any favored free spot
-	 * from |best_moves| */
-		for (i = 0; i < total_best_moves; ++i) {
-			test = best_moves[i];
-			if (gameboard[test] == EMPTY) {
-				nextXmove = test;
-				break;
-			}
+		test = two_of_three(XPLAYER, listOmoves, perms, gameboard_ptr);
+		if (test != NOTFOUND) {
+			printf("I found a matching duple of O positions and I will block the win.\n");
+			nextXmove = test;
+		} else {
+			@<Pick any free spot@>@;
 		}
 	}
 }
 
-/* Test |nextXmove| and update board */
 newmove(XPLAYER, nextXmove, gameboard_ptr, charboard_ptr);
 @<Draw board@>@;
 ++squares_filled;
+++total_X_moves;
 listXmoves = insert_sorted(listXmoves, nextXmove);
 printf("X moves: ");
 print_movelist(listXmoves);
@@ -314,77 +324,39 @@ if (squares_filled > 8) {
 	winner = EMPTY;
 }
 
-@ Function to test player's board positions for winning series, 3 out of 3.
+@ Choose any available free position from a list arranged with the most optimal
+spots (the middle and corners) first.
 
-@p
-boolean check_triple(square_ptr head)
-{
-	square_ptr list;
-	int i;
-	int a, b, c; /* Test values */
-	boolean bool_win;
-
-	if (head == NULL) {
-		return(EXIT_FAILURE);
-	} else {
-		list = head;
+@<Pick any free spot@>=
+printf("I found no matches; I will pick any good free spot.\n");
+for (i = 0; i < total_best_moves; ++i) {
+	test = best_moves[i];
+	if (gameboard[test] == EMPTY) {
+		nextXmove = test;
+		break;
 	}
-	
-	a = list->position;
-	if (list->next == NULL) {
-		b = c = 0;
-	} else {
-		list = list->next;
-		b = list->position;
-		if (list->next != NULL) {
-			list = list->next;
-			c = list->position;
-		} else c = 0;
-	}
-
-	printf("Checking these values: %d %d %d\n", a, b, c);
-
-	for (bool_win = FALSE; list != NULL; list = list->next) {
-		for (i = 0; i < MAXANSWERS; ++i) {
-			if (answer[i][0] == a && 
-			    answer[i][1] == b && 
-			    answer[i][2] == c) {
-				printf("Triple found.\n");
-				bool_win = TRUE;
-				return(bool_win);
-			} 
-		}
-		/* If no match found, try next set of three consecutive
-		 * positions from linked list */
-		if (list->next != NULL) {
-			list = list->next;
-			a = b;
-			b = c;
-			c = list->position;
-		} else break;
-	}
-
-	return(bool_win);
 }
 
-@ @<Function prototypes@>=
-boolean check_triple(square_ptr head);
 
+@* Function to test for two in a row, and if found, return the third member.
 
+@<Global variables@>=
+static const enum { NOTFOUND = -10, O_WINS } function_errors;
 
-
-@ Function to test for two in a row, and if found, return the third member.
-
-@d ERROR -6
+@ If the player tested is |OPLAYER| then, the function also checks the
+|listOmoves| to see if |OPLAYER| has the third member also, meaning that O wins.
+In that case the function returns |O_WINS|.
+If no series of two is found, it returns |NOTFOUND|.
 
 @p
-int twoofthree(square_ptr head, int perms[][3])
+int two_of_three(int player, square_ptr head, int perms[][3], int *gameboard)
 {
 	int i, p;
+	int third; /* Third member of triple when first two are found */
 	square_ptr list;
 
 	if (head == NULL) {
-		return(ERROR);
+		return(NOTFOUND);
 	} else {
 		list = head;
 	}
@@ -394,16 +366,39 @@ int twoofthree(square_ptr head, int perms[][3])
 			if (list->position == perms[p][0]) {
 				if (list->next != NULL 
 				&& (list->next)->position == perms[p][1]) {
-					return(perms[p][2]);
+					third = perms[p][2];
+					@<Test this permutation@>@;
 				}
 			}
 		}
 	}
-	return(ERROR);
+	return(NOTFOUND);
 }
 
+@ If we find a pair of the player's board positions that matches one of the
+winning permutations, then we test the permutation.
+If the player is |OPLAYER| then we only want to know if the third position is
+already occupied by O, because in that case O wins the game.
+If the player is |XPLAYER|, then the third position is the next X move if it is
+empty.
+
+@<Test this permutation@>=
+if (player == OPLAYER) {
+	if (*(gameboard + third) == OPLAYER) {
+		return(O_WINS);
+	} else {
+		continue;
+	}
+} else {
+	if (*(gameboard + third) == EMPTY) {
+		return(third);
+	} else {
+		continue; /* Next |p| */
+	}
+} 
+
 @ @<Function prototypes@>=
-int twoofthree(square_ptr head, int perms[][3]);
+int two_of_three(int player, square_ptr head, int perms[][3], int *gameboard);
 
 
 @ Print current list of moves (for testing purposes only).
@@ -423,15 +418,31 @@ void print_movelist(square_ptr list);
 
 @* Game-over routine.
 
+@<Global variables@>=
+static const char *gameover_msg[] = {
+@/	"***   DRAW.    ***",
+@/	"***  X WINS.   ***",
+@/	"***  O WINS.   ***",
+@/	"*** Game over! ***"
+@/ 
+};
+
+static const enum {
+@/ 	MSG_DRAW,
+@/	MSG_X_WINS,
+@/	MSG_O_WINS,
+@/	MSG_GAMEOVER
+} gameover_msg_label;
+
+
+@ |winner| will by |EMPTY|, |XPLAYER|, or |OPLAYER|; we can use these as indices
+to |gameover_msg|.
+
 @<Gameover routine@>=
-		
-printf("\n*** Game over! ***\n");
-if (winner == EMPTY) {
-	printf("***   DRAW.    ***\n");
-} else printf("***  %c WINS.   ***\n\n", playerchar[winner]);
+printf("\n%s\n", gameover_msg[MSG_GAMEOVER]);		
+printf("%s\n\n", gameover_msg[winner]);
 
-
-@ Error messages.
+@* Error messages.
 
 @<Global variables@>=
 static const enum {

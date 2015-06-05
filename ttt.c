@@ -1,14 +1,10 @@
 #define CHAR_BOARD_LENGTH 62 \
 
-#define MAXANSWERS 8
-#define MAXPERMS 24
-#define NOTFOUND -1 \
+#define MAXANSWERS 8 \
 
 #define MAXPERMS 24 \
 
 #define MAXLINE 100 \
-
-#define ERROR -6 \
 
 /*1:*/
 #line 7 "./ttt.w"
@@ -20,10 +16,12 @@
 /*2:*/
 #line 42 "./ttt.w"
 
-static const int charboard_index[]= 
-{2,6,10,
+static const int charboard_index[]= {
+2,6,10,
 26,30,34,
-50,54,58};
+50,54,58
+
+};
 
 static const enum{
 A1,A2,A3,
@@ -33,13 +31,14 @@ C1,C2,C3}squareID;
 static const char*square_label[]= {
 "A1","A2","A3",
 "B1","B2","B3",
-"C1","C2","C3"};
+"C1","C2","C3"
 
+};
 static const enum{EMPTY,XPLAYER,OPLAYER}playerID;
 static const char playerchar[]= {' ','X','O'};
 
 /*:2*//*5:*/
-#line 95 "./ttt.w"
+#line 96 "./ttt.w"
 
 static const int answer[8][3]= {
 {0,1,2},
@@ -50,10 +49,11 @@ static const int answer[8][3]= {
 {2,5,8},
 {3,4,5},
 {6,7,8}
+
 };
 
 /*:5*//*8:*/
-#line 141 "./ttt.w"
+#line 151 "./ttt.w"
 
 typedef struct square*square_ptr;
 typedef struct square{
@@ -61,8 +61,32 @@ int position;
 square_ptr next;
 }square;
 
-/*:8*//*25:*/
-#line 436 "./ttt.w"
+/*:8*//*19:*/
+#line 351 "./ttt.w"
+
+static const enum{NOTFOUND= -10,O_WINS}function_errors;
+
+/*:19*//*25:*/
+#line 429 "./ttt.w"
+
+static const char*gameover_msg[]= {
+"***   DRAW.    ***",
+"***  X WINS.   ***",
+"***  O WINS.   ***",
+"*** Game over! ***"
+
+};
+
+static const enum{
+MSG_DRAW,
+MSG_X_WINS,
+MSG_O_WINS,
+MSG_GAMEOVER
+}gameover_msg_label;
+
+
+/*:25*//*27:*/
+#line 455 "./ttt.w"
 
 static const enum{
 O_COMMAND_OUT_OF_RANGE,
@@ -89,49 +113,41 @@ static const char greeting[]= {
 "Let's play!"
 };
 
-/*:25*/
+/*:27*/
 #line 12 "./ttt.w"
 
 typedef enum{FALSE,TRUE}boolean;
 
 /*10:*/
-#line 192 "./ttt.w"
+#line 202 "./ttt.w"
 
 square_ptr insert_sorted(square_ptr head,int new_position);
 
 
 /*:10*//*12:*/
-#line 207 "./ttt.w"
+#line 216 "./ttt.w"
 
 int newmove(int player,int square,int*gameboard,char*charboard);
 
-/*:12*//*19:*/
-#line 370 "./ttt.w"
+/*:12*//*22:*/
+#line 408 "./ttt.w"
 
-boolean check_triple(square_ptr head);
-
-
+int two_of_three(int player,square_ptr head,int perms[][3],int*gameboard);
 
 
-/*:19*//*21:*/
-#line 405 "./ttt.w"
-
-int twoofthree(square_ptr head,int perms[][3]);
-
-
-/*:21*//*23:*/
-#line 421 "./ttt.w"
+/*:22*//*24:*/
+#line 424 "./ttt.w"
 
 void print_movelist(square_ptr list);
 
-/*:23*/
+/*:24*/
 #line 15 "./ttt.w"
 
 
 int main(int argc,char*argv[])
 {
 /*3:*/
-#line 69 "./ttt.w"
+#line 72 "./ttt.w"
 
 int gameboard[9]= {0,0,0,0,0,0,0,0,0};
 char charboard[]= 
@@ -144,23 +160,25 @@ int*gameboard_ptr= gameboard;
 char*charboard_ptr= charboard;
 
 /*:3*//*6:*/
-#line 111 "./ttt.w"
+#line 113 "./ttt.w"
 
 int perms[MAXPERMS][3];
 int a,b,c;
 int j;
 
 /*:6*//*13:*/
-#line 214 "./ttt.w"
+#line 223 "./ttt.w"
 
 char input_line[MAXLINE];
 int nextOmove;
 int squares_filled;
 square_ptr listOmoves= NULL;
+int total_O_moves= 0;
+int total_X_moves= 0;
 int winner= EMPTY;
 
 /*:13*//*15:*/
-#line 257 "./ttt.w"
+#line 269 "./ttt.w"
 
 int best_moves[]= {B2,A1,A3,C1,C3,A2,B1,B3,C2};
 int total_best_moves= 8;
@@ -177,7 +195,7 @@ boolean bool_gameover;
 bool_gameover= FALSE;
 
 /*7:*/
-#line 116 "./ttt.w"
+#line 118 "./ttt.w"
 
 
 
@@ -199,13 +217,21 @@ perms[j][2]= a;
 ++j;
 }
 
+
+for(i= 0;i<MAXPERMS;++i){
+for(j= 0;j<3;++j){
+printf("%d ",perms[i][j]);
+}
+printf("\n");
+}
+
 /*:7*/
 #line 23 "./ttt.w"
 
 
 printf("%s\n",greeting);
 /*4:*/
-#line 82 "./ttt.w"
+#line 85 "./ttt.w"
 
 printf("%s",charboard);
 
@@ -216,7 +242,7 @@ printf("%s",charboard);
 
 while(bool_gameover==FALSE){
 /*14:*/
-#line 226 "./ttt.w"
+#line 237 "./ttt.w"
 
 while(1){
 
@@ -234,19 +260,20 @@ nextOmove= (input_line[0]-'A')*3;
 nextOmove+= input_line[1]-'1';
 if(gameboard[nextOmove]==EMPTY){
 newmove(OPLAYER,nextOmove,gameboard_ptr,charboard_ptr);
-++squares_filled;
-listOmoves= insert_sorted(listOmoves,nextOmove);
-printf("O moves: ");
-print_movelist(listOmoves);
 /*4:*/
-#line 82 "./ttt.w"
+#line 85 "./ttt.w"
 
 printf("%s",charboard);
 
 
 /*:4*/
-#line 247 "./ttt.w"
+#line 254 "./ttt.w"
 
+++squares_filled;
+++total_O_moves;
+listOmoves= insert_sorted(listOmoves,nextOmove);
+printf("O moves: ");
+print_movelist(listOmoves);
 break;
 }else{
 printf("%s\n",error[SQUARE_OCCUPIED]);
@@ -258,38 +285,28 @@ printf("%s\n",error[SQUARE_OCCUPIED]);
 #line 29 "./ttt.w"
 
 /*16:*/
-#line 266 "./ttt.w"
+#line 280 "./ttt.w"
 
-
-printf("Checking for O win...\n");
-if(check_triple(listOmoves)==TRUE){
+if(total_O_moves> 2){
+test= two_of_three(OPLAYER,listOmoves,perms,gameboard_ptr);
+if(test==O_WINS){
 bool_gameover= TRUE;
 winner= OPLAYER;
+}
 }
 
 /*:16*/
 #line 30 "./ttt.w"
 
 /*17:*/
-#line 276 "./ttt.w"
+#line 299 "./ttt.w"
 
 
+if(total_X_moves<1){
+/*18:*/
+#line 338 "./ttt.w"
 
-test= twoofthree(listOmoves,perms);
-printf("%s = test = twoofthree(listOmoves, perms)\n",square_label[test]);
-
-if(test!=ERROR){
-nextXmove= test;
-}else{
-
-test= twoofthree(listXmoves,perms);
-if(test!=ERROR){
-nextXmove= test;
-bool_gameover= TRUE;
-winner= XPLAYER;
-}else{
-
-
+printf("I found no matches; I will pick any good free spot.\n");
 for(i= 0;i<total_best_moves;++i){
 test= best_moves[i];
 if(gameboard[test]==EMPTY){
@@ -297,21 +314,57 @@ nextXmove= test;
 break;
 }
 }
+
+
+/*:18*/
+#line 302 "./ttt.w"
+
+}else{
+test= two_of_three(XPLAYER,listXmoves,perms,gameboard_ptr);
+
+if(test!=NOTFOUND){
+printf("I found a matching triple of X positions.\n");
+nextXmove= test;
+bool_gameover= TRUE;
+winner= XPLAYER;
+}else{
+test= two_of_three(XPLAYER,listOmoves,perms,gameboard_ptr);
+if(test!=NOTFOUND){
+printf("I found a matching duple of O positions and I will block the win.\n");
+nextXmove= test;
+}else{
+/*18:*/
+#line 338 "./ttt.w"
+
+printf("I found no matches; I will pick any good free spot.\n");
+for(i= 0;i<total_best_moves;++i){
+test= best_moves[i];
+if(gameboard[test]==EMPTY){
+nextXmove= test;
+break;
 }
 }
 
+
+/*:18*/
+#line 317 "./ttt.w"
+
+}
+}
+}
 
 newmove(XPLAYER,nextXmove,gameboard_ptr,charboard_ptr);
 /*4:*/
-#line 82 "./ttt.w"
+#line 85 "./ttt.w"
 
 printf("%s",charboard);
 
 
 /*:4*/
-#line 306 "./ttt.w"
+#line 323 "./ttt.w"
 
 ++squares_filled;
+++total_X_moves;
 listXmoves= insert_sorted(listXmoves,nextXmove);
 printf("X moves: ");
 print_movelist(listXmoves);
@@ -325,17 +378,13 @@ winner= EMPTY;
 #line 31 "./ttt.w"
 
 }
-/*24:*/
-#line 426 "./ttt.w"
+/*26:*/
+#line 449 "./ttt.w"
 
+printf("\n%s\n",gameover_msg[MSG_GAMEOVER]);
+printf("%s\n\n",gameover_msg[winner]);
 
-printf("\n*** Game over! ***\n");
-if(winner==EMPTY){
-printf("***   DRAW.    ***\n");
-}else printf("***  %c WINS.   ***\n\n",playerchar[winner]);
-
-
-/*:24*/
+/*:26*/
 #line 33 "./ttt.w"
 
 return(0);
@@ -344,7 +393,7 @@ return(0);
 
 
 /*:1*//*9:*/
-#line 150 "./ttt.w"
+#line 160 "./ttt.w"
 
 square_ptr insert_sorted(square_ptr head,int new_position)
 {
@@ -388,79 +437,26 @@ return(head);
 }
 
 /*:9*//*11:*/
-#line 198 "./ttt.w"
+#line 208 "./ttt.w"
 
-int newmove(int player,int square,int*gameboard,char*charboard)
+int newmove(int player,int position,int*gameboard,char*charboard)
 {
-
-*(gameboard+square)= player;
-*(charboard+charboard_index[square])= playerchar[player];
+*(gameboard+position)= player;
+*(charboard+charboard_index[position])= playerchar[player];
 return(0);
 }
 
-/*:11*//*18:*/
-#line 319 "./ttt.w"
+/*:11*//*20:*/
+#line 359 "./ttt.w"
 
-boolean check_triple(square_ptr head)
-{
-square_ptr list;
-int i;
-int a,b,c;
-boolean bool_win;
-
-if(head==NULL){
-return(EXIT_FAILURE);
-}else{
-list= head;
-}
-
-a= list->position;
-if(list->next==NULL){
-b= c= 0;
-}else{
-list= list->next;
-b= list->position;
-if(list->next!=NULL){
-list= list->next;
-c= list->position;
-}else c= 0;
-}
-
-printf("Checking these values: %d %d %d\n",a,b,c);
-
-for(bool_win= FALSE;list!=NULL;list= list->next){
-for(i= 0;i<MAXANSWERS;++i){
-if(answer[i][0]==a&&
-answer[i][1]==b&&
-answer[i][2]==c){
-printf("Triple found.\n");
-bool_win= TRUE;
-return(bool_win);
-}
-}
-
-
-if(list->next!=NULL){
-list= list->next;
-a= b;
-b= c;
-c= list->position;
-}else break;
-}
-
-return(bool_win);
-}
-
-/*:18*//*20:*/
-#line 380 "./ttt.w"
-
-int twoofthree(square_ptr head,int perms[][3])
+int two_of_three(int player,square_ptr head,int perms[][3],int*gameboard)
 {
 int i,p;
+int third;
 square_ptr list;
 
 if(head==NULL){
-return(ERROR);
+return(NOTFOUND);
 }else{
 list= head;
 }
@@ -470,16 +466,36 @@ for(p= 0;p<MAXPERMS;++p){
 if(list->position==perms[p][0]){
 if(list->next!=NULL
 &&(list->next)->position==perms[p][1]){
-return(perms[p][2]);
+third= perms[p][2];
+/*21:*/
+#line 393 "./ttt.w"
+
+if(player==OPLAYER){
+if(*(gameboard+third)==OPLAYER){
+return(O_WINS);
+}else{
+continue;
 }
+}else{
+if(*(gameboard+third)==EMPTY){
+return(third);
+}else{
+continue;
 }
-}
-}
-return(ERROR);
 }
 
-/*:20*//*22:*/
-#line 411 "./ttt.w"
+/*:21*/
+#line 378 "./ttt.w"
+
+}
+}
+}
+}
+return(NOTFOUND);
+}
+
+/*:20*//*23:*/
+#line 414 "./ttt.w"
 
 void print_movelist(square_ptr list)
 {
@@ -490,4 +506,4 @@ printf("\n");
 return;
 }
 
-/*:22*/
+/*:23*/
