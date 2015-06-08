@@ -26,10 +26,10 @@ ${}\\{printf}(\.{"\%s\\n"},\39\\{greeting});{}$\6
 \&{while} ${}(\\{bool\_gameover}\E\.{FALSE}){}$\5
 ${}\{{}$\1\6
 \X14:Get O move, update board\X\6
-\X16:Process last move\X\6
+\X16:Check for O win\X\6
 \X17:Prepare next move\X\6
 \4${}\}{}$\2\6
-\X24:Gameover routine\X\6
+\X26:Gameover routine\X\6
 \&{return} (\T{0});\6
 \4${}\}{}$\2\par
 \fi
@@ -58,7 +58,7 @@ ${}\.{EMPTY},\39\.{XPLAYER},\39\.{OPLAYER}{}$\2\6
 ${}\}{}$ \\{playerID};\6
 \&{static} \&{const} \&{char} \\{playerchar}[\,]${}\K\{\.{'\ '},\39\.{'X'},\39%
 \.{'O'}\}{}$;\par
-\As5, 8\ETs25.
+\As5, 8, 19, 25\ETs27.
 \U1.\fi
 
 \M{3}We set up the table within \PB{\\{main}}.
@@ -98,10 +98,6 @@ ascending order (to find runs of 2/3).
 
 \Y\B\4\D$\.{MAXANSWERS}$ \5
 \T{8}\par
-\B\4\D$\.{MAXPERMS}$ \5
-\T{24}\par
-\B\4\D$\.{NOTFOUND}$ \5
-${-}{}$\T{1}\par
 \Y\B\4\X2:Global variables\X${}\mathrel+\E{}$\6
 \&{static} \&{const} \&{int} \\{answer}[\T{8}][\T{3}]${}\K\{{}$\6
 ${}\{\T{0},\39\T{1},\39\T{2}\},{}$\6
@@ -208,7 +204,7 @@ ${}\\{new\_square}\MG\\{next}\K\NULL{}$;\C{ Return head of list }\6
 \M{10}\B\X10:Function prototypes\X${}\E{}$\6
 \&{square\_ptr} \\{insert\_sorted}(\&{square\_ptr} \\{head}${},\39{}$\&{int} %
 \\{new\_position});\par
-\As12, 19, 21\ETs23.
+\As12, 22\ETs24.
 \U1.\fi
 
 \N{1}{11}Updating the game board.
@@ -238,6 +234,9 @@ ${}{*}(\\{charboard}+\\{charboard\_index}[\\{position}])\K\\{playerchar}[%
 \&{int} \\{nextOmove};\6
 \&{int} \\{squares\_filled};\C{ Total squares filled on board }\6
 \&{square\_ptr} \\{listOmoves}${}\K\NULL;{}$\6
+\&{int} \\{total\_O\_moves}${}\K\T{0};{}$\6
+\&{int} \\{total\_X\_moves}${}\K\T{0}{}$;\C{ Counter per player of moves on
+board }\6
 \&{int} \\{winner}${}\K\.{EMPTY}{}$;\par
 \fi
 
@@ -262,11 +261,12 @@ ${}\\{nextOmove}\MRL{+{\K}}\\{input\_line}[\T{1}]-\.{'1'};$ \6
 ${}\{{}$\1\6
 ${}\\{newmove}(\.{OPLAYER},\39\\{nextOmove},\39\\{gameboard\_ptr},\39%
 \\{charboard\_ptr});{}$\6
+\X4:Draw board\X\6
 ${}\PP\\{squares\_filled};{}$\6
+${}\PP\\{total\_O\_moves};{}$\6
 ${}\\{listOmoves}\K\\{insert\_sorted}(\\{listOmoves},\39\\{nextOmove});{}$\6
 \\{printf}(\.{"O\ moves:\ "});\6
 \\{print\_movelist}(\\{listOmoves});\6
-\X4:Draw board\X\6
 \&{break};\6
 \4${}\}{}$\2\6
 \&{else} $\{$ \\{printf} $(\.{"\%s\\n"},\39$ \&{error} [\.{SQUARE\_OCCUPIED}] )
@@ -287,54 +287,70 @@ move.
 \&{int} \\{test};\par
 \fi
 
-\M{16}\B\X16:Process last move\X${}\E{}$\C{ Test O values for 3/3 }\6
-\\{printf}(\.{"Checking\ for\ O\ win.}\)\.{..\\n"});\6
-\&{if} ${}(\\{check\_triple}(\\{listOmoves})\E\.{TRUE}){}$\5
+\M{16}See if O wins by having three in a row.
+
+\Y\B\4\X16:Check for O win\X${}\E{}$\6
+\&{if} ${}(\\{total\_O\_moves}>\T{2}){}$\5
+${}\{{}$\1\6
+${}\\{test}\K\\{two\_of\_three}(\.{OPLAYER},\39\\{listOmoves},\39\\{perms},\39%
+\\{gameboard\_ptr});{}$\6
+\&{if} ${}(\\{test}\E\.{O\_WINS}){}$\5
 ${}\{{}$\1\6
 ${}\\{bool\_gameover}\K\.{TRUE};{}$\6
 ${}\\{winner}\K\.{OPLAYER};{}$\6
+\4${}\}{}$\2\6
 \4${}\}{}$\2\par
 \U1.\fi
 
 \M{17}Prepare next move.
+Test O values for 3/3; if so, O wins.
+If not, check if X has 2/3; if so, move to missing 3rd spot to win.
+If there is no 2/3 run for X, check if O has 2/3 and move to third spot to
+block
+O from winning.
+If there is no 2/3 run for O or X, then choose any favored free spot from
+\PB{\\{best\_moves}}.
+Finally, add \PB{\\{nextXmove}} to the list of X moves and update the board.
+If all the squares are filled, the game is over automatically.
 
-\Y\B\4\X17:Prepare next move\X${}\E{}$\C{ Check if O has 2/3; if so, move to
-missing 3rd spot }\6
-$\\{test}\K\\{twoofthree}(\\{listOmoves},\39\\{perms});{}$\6
-${}\\{printf}(\.{"\%s\ =\ test\ =\ twoofth}\)\.{ree(listOmoves,\ perm}\)\.{s)%
-\\n"},\39\\{square\_label}[\\{test}]);{}$\6
-\&{if} ${}(\\{test}\I\.{ERROR}){}$\5
+\Y\B\4\X17:Prepare next move\X${}\E{}$\6
+\&{if} ${}(\\{total\_X\_moves}<\T{1}){}$\5
 ${}\{{}$\1\6
-${}\\{nextXmove}\K\\{test};{}$\6
+\X18:Pick any free spot\X\6
 \4${}\}{}$\2\6
 \&{else}\5
-${}\{{}$\C{ If there is no 2/3 run for O, check if X has 2/3 and move to third
-spot to win }\1\6
-${}\\{test}\K\\{twoofthree}(\\{listXmoves},\39\\{perms});{}$\6
-\&{if} ${}(\\{test}\I\.{ERROR}){}$\5
 ${}\{{}$\1\6
+${}\\{test}\K\\{two\_of\_three}(\.{XPLAYER},\39\\{listXmoves},\39\\{perms},\39%
+\\{gameboard\_ptr});{}$\6
+\&{if} ${}(\\{test}\I\.{NOTFOUND}){}$\5
+${}\{{}$\1\6
+\\{printf}(\.{"I\ found\ a\ matching\ }\)\.{triple\ of\ X\ position}\)\.{s.%
+\\n"});\6
 ${}\\{nextXmove}\K\\{test};{}$\6
 ${}\\{bool\_gameover}\K\.{TRUE};{}$\6
 ${}\\{winner}\K\.{XPLAYER};{}$\6
 \4${}\}{}$\2\6
 \&{else}\5
-${}\{{}$\C{ If there is no 2/3 run for O or X, then choose any favored free
-spot 	 * from \PB{\\{best\_moves}} }\1\6
-\&{for} ${}(\|i\K\T{0};{}$ ${}\|i<\\{total\_best\_moves};{}$ ${}\PP\|i){}$\5
 ${}\{{}$\1\6
-${}\\{test}\K\\{best\_moves}[\|i];{}$\6
-\&{if} ${}(\\{gameboard}[\\{test}]\E\.{EMPTY}){}$\5
+${}\\{test}\K\\{two\_of\_three}(\.{XPLAYER},\39\\{listOmoves},\39\\{perms},\39%
+\\{gameboard\_ptr});{}$\6
+\&{if} ${}(\\{test}\I\.{NOTFOUND}){}$\5
 ${}\{{}$\1\6
+\\{printf}(\.{"I\ found\ a\ matching\ }\)\.{duple\ of\ O\ positions}\)\.{\ and\
+I\ will\ block\ th}\)\.{e\ win.\\n"});\6
 ${}\\{nextXmove}\K\\{test};{}$\6
-\&{break};\6
+\4${}\}{}$\2\6
+\&{else}\5
+${}\{{}$\1\6
+\X18:Pick any free spot\X\6
 \4${}\}{}$\2\6
 \4${}\}{}$\2\6
 \4${}\}{}$\2\6
-\4${}\}{}$\C{ Test \PB{\\{nextXmove}} and update board }\2\6
 ${}\\{newmove}(\.{XPLAYER},\39\\{nextXmove},\39\\{gameboard\_ptr},\39%
 \\{charboard\_ptr});{}$\6
 \X4:Draw board\X\6
 ${}\PP\\{squares\_filled};{}$\6
+${}\PP\\{total\_X\_moves};{}$\6
 ${}\\{listXmoves}\K\\{insert\_sorted}(\\{listXmoves},\39\\{nextXmove});{}$\6
 \\{printf}(\.{"X\ moves:\ "});\6
 \\{print\_movelist}(\\{listXmoves});\6
@@ -345,85 +361,50 @@ ${}\\{winner}\K\.{EMPTY};{}$\6
 \4${}\}{}$\2\par
 \U1.\fi
 
-\M{18}Function to test player's board positions for winning series, 3 out of 3.
+\M{18}Choose any available free position from a list arranged with the most
+optimal
+spots (the middle and corners) first.
 
-\Y\B\&{boolean} \\{check\_triple}(\&{square\_ptr} \\{head})\1\1\2\2\6
+\Y\B\4\X18:Pick any free spot\X${}\E{}$\6
+\\{printf}(\.{"I\ found\ no\ matches;}\)\.{\ I\ will\ pick\ any\ goo}\)\.{d\
+free\ spot.\\n"});\6
+\&{for} ${}(\|i\K\T{0};{}$ ${}\|i<\\{total\_best\_moves};{}$ ${}\PP\|i){}$\5
 ${}\{{}$\1\6
-\&{square\_ptr} \\{list};\6
-\&{int} \|i;\6
-\&{int} \|a${},{}$ \|b${},{}$ \|c;\C{ Test values }\6
-\&{boolean} \\{bool\_win};\7
-\&{if} ${}(\\{head}\E\NULL){}$\5
+${}\\{test}\K\\{best\_moves}[\|i];{}$\6
+\&{if} ${}(\\{gameboard}[\\{test}]\E\.{EMPTY}){}$\5
 ${}\{{}$\1\6
-\&{return} (\.{EXIT\_FAILURE});\6
+${}\\{nextXmove}\K\\{test};{}$\6
+\&{break};\6
 \4${}\}{}$\2\6
-\&{else}\5
-${}\{{}$\1\6
-${}\\{list}\K\\{head};{}$\6
-\4${}\}{}$\2\6
-${}\|a\K\\{list}\MG\\{position};{}$\6
-\&{if} ${}(\\{list}\MG\\{next}\E\NULL){}$\5
-${}\{{}$\1\6
-${}\|b\K\|c\K\T{0};{}$\6
-\4${}\}{}$\2\6
-\&{else}\5
-${}\{{}$\1\6
-${}\\{list}\K\\{list}\MG\\{next};{}$\6
-${}\|b\K\\{list}\MG\\{position};{}$\6
-\&{if} ${}(\\{list}\MG\\{next}\I\NULL){}$\5
-${}\{{}$\1\6
-${}\\{list}\K\\{list}\MG\\{next};{}$\6
-${}\|c\K\\{list}\MG\\{position};{}$\6
-\4${}\}{}$\2\6
-\&{else}\1\5
-${}\|c\K\T{0};{}$\2\6
-\4${}\}{}$\2\6
-${}\\{printf}(\.{"Checking\ these\ valu}\)\.{es:\ \%d\ \%d\ \%d\\n"},\39\|a,\39%
-\|b,\39\|c);{}$\6
-\&{for} ${}(\\{bool\_win}\K\.{FALSE};{}$ ${}\\{list}\I\NULL;{}$ ${}\\{list}\K%
-\\{list}\MG\\{next}){}$\5
-${}\{{}$\1\6
-\&{for} ${}(\|i\K\T{0};{}$ ${}\|i<\.{MAXANSWERS};{}$ ${}\PP\|i){}$\5
-${}\{{}$\1\6
-\&{if} ${}(\\{answer}[\|i][\T{0}]\E\|a\W\\{answer}[\|i][\T{1}]\E\|b\W%
-\\{answer}[\|i][\T{2}]\E\|c){}$\5
-${}\{{}$\1\6
-\\{printf}(\.{"Triple\ found.\\n"});\6
-${}\\{bool\_win}\K\.{TRUE};{}$\6
-\&{return} (\\{bool\_win});\6
-\4${}\}{}$\2\6
-\4${}\}{}$\C{ If no match found, try next set of three consecutive 		 *
-positions from linked list }\2\6
-\&{if} ${}(\\{list}\MG\\{next}\I\NULL){}$\5
-${}\{{}$\1\6
-${}\\{list}\K\\{list}\MG\\{next};{}$\6
-${}\|a\K\|b;{}$\6
-${}\|b\K\|c;{}$\6
-${}\|c\K\\{list}\MG\\{position};{}$\6
-\4${}\}{}$\2\6
-\&{else}\1\5
-\&{break};\2\6
-\4${}\}{}$\2\6
-\&{return} (\\{bool\_win});\6
 \4${}\}{}$\2\par
+\U17.\fi
+
+\N{1}{19}Function to test for two in a row, and if found, return the third
+member.
+
+\Y\B\4\X2:Global variables\X${}\mathrel+\E{}$\6
+\&{static} \&{const} \&{enum} ${}\{{}$\1\6
+${}\.{NOTFOUND}\K{-}\T{10},\39\.{O\_WINS}{}$\2\6
+${}\}{}$ \\{function\_errors};\par
 \fi
 
-\M{19}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
-\&{boolean} \\{check\_triple}(\&{square\_ptr} \\{head});\par
-\fi
+\M{20}If the player tested is \PB{\.{OPLAYER}} then, the function also checks
+the
+\PB{\\{listOmoves}} to see if \PB{\.{OPLAYER}} has the third member also,
+meaning that O wins.
+In that case the function returns \PB{\.{O\_WINS}}.
+If no series of two is found, it returns \PB{\.{NOTFOUND}}.
 
-\M{20}Function to test for two in a row, and if found, return the third member.
-
-\Y\B\4\D$\.{ERROR}$ \5
-${-}{}$\T{6}\par
-\Y\B\&{int} \\{twoofthree}(\&{square\_ptr} \\{head}${},\39{}$\&{int} \\{perms}[%
-\,][\T{3}])\1\1\2\2\6
+\Y\B\&{int} \\{two\_of\_three}(\&{int} \\{player}${},\39{}$\&{square\_ptr} %
+\\{head}${},\39{}$\&{int} \\{perms}[\,][\T{3}]${},\39{}$\&{int} ${}{*}%
+\\{gameboard}){}$\1\1\2\2\6
 ${}\{{}$\1\6
 \&{int} \|i${},{}$ \|p;\6
+\&{int} \\{third};\C{ Third member of triple when first two are found }\6
 \&{square\_ptr} \\{list};\7
 \&{if} ${}(\\{head}\E\NULL){}$\5
 ${}\{{}$\1\6
-\&{return} (\.{ERROR});\6
+\&{return} (\.{NOTFOUND});\6
 \4${}\}{}$\2\6
 \&{else}\5
 ${}\{{}$\1\6
@@ -439,21 +420,57 @@ ${}\{{}$\1\6
 \&{if} ${}(\\{list}\MG\\{next}\I\NULL\W(\\{list}\MG\\{next})\MG\\{position}\E%
 \\{perms}[\|p][\T{1}]){}$\5
 ${}\{{}$\1\6
-\&{return} (\\{perms}[\|p][\T{2}]);\6
+${}\\{third}\K\\{perms}[\|p][\T{2}];{}$\6
+\X21:Test this permutation\X\6
 \4${}\}{}$\2\6
 \4${}\}{}$\2\6
 \4${}\}{}$\2\6
 \4${}\}{}$\2\6
-\&{return} (\.{ERROR});\6
+\&{return} (\.{NOTFOUND});\6
 \4${}\}{}$\2\par
 \fi
 
-\M{21}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
-\&{int} \\{twoofthree}(\&{square\_ptr} \\{head}${},\39{}$\&{int} \\{perms}[\,][%
-\T{3}]);\par
+\M{21}If we find a pair of the player's board positions that matches one of the
+winning permutations, then we test the permutation.
+If the player is \PB{\.{OPLAYER}} then we only want to know if the third
+position is
+already occupied by O, because in that case O wins the game.
+If the player is \PB{\.{XPLAYER}}, then the third position is the next X move
+if it is
+empty.
+
+\Y\B\4\X21:Test this permutation\X${}\E{}$\6
+\&{if} ${}(\\{player}\E\.{OPLAYER}){}$\5
+${}\{{}$\1\6
+\&{if} ${}({*}(\\{gameboard}+\\{third})\E\.{OPLAYER}){}$\5
+${}\{{}$\1\6
+\&{return} (\.{O\_WINS});\6
+\4${}\}{}$\2\6
+\&{else}\5
+${}\{{}$\1\6
+\&{continue};\6
+\4${}\}{}$\2\6
+\4${}\}{}$\2\6
+\&{else}\5
+${}\{{}$\1\6
+\&{if} ${}({*}(\\{gameboard}+\\{third})\E\.{EMPTY}){}$\5
+${}\{{}$\1\6
+\&{return} (\\{third});\6
+\4${}\}{}$\2\6
+\&{else}\5
+${}\{{}$\1\6
+\&{continue};\C{ Next \PB{\|p} }\6
+\4${}\}{}$\2\6
+\4${}\}{}$\2\par
+\U20.\fi
+
+\M{22}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
+\&{int} \\{two\_of\_three}(\&{int} \\{player}${},\39{}$\&{square\_ptr} %
+\\{head}${},\39{}$\&{int} \\{perms}[\,][\T{3}]${},\39{}$\&{int} ${}{*}%
+\\{gameboard}){}$;\par
 \fi
 
-\M{22}Print current list of moves (for testing purposes only).
+\M{23}Print current list of moves (for testing purposes only).
 
 \Y\B\&{void} \\{print\_movelist}(\&{square\_ptr} \\{list})\1\1\2\2\6
 ${}\{{}$\1\6
@@ -466,24 +483,37 @@ ${}\\{printf}(\.{"\%s\ "},\39\\{square\_label}[\\{list}\MG\\{position}]);{}$\6
 \4${}\}{}$\2\par
 \fi
 
-\M{23}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
+\M{24}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
 \&{void} \\{print\_movelist}(\&{square\_ptr} \\{list});\par
 \fi
 
-\N{1}{24}Game-over routine.
+\N{1}{25}Game-over routine.
 
-\Y\B\4\X24:Gameover routine\X${}\E{}$\6
-\\{printf}(\.{"\\n***\ Game\ over!\ **}\)\.{*\\n"});\6
-\&{if} ${}(\\{winner}\E\.{EMPTY}){}$\5
-${}\{{}$\1\6
-\\{printf}(\.{"***\ \ \ DRAW.\ \ \ \ ***\\}\)\.{n"});\6
-\4${}\}{}$\2\6
-\&{else}\1\5
-${}\\{printf}(\.{"***\ \ \%c\ WINS.\ \ \ ***}\)\.{\\n\\n"},\39\\{playerchar}[%
-\\{winner}]){}$;\2\par
+\Y\B\4\X2:Global variables\X${}\mathrel+\E{}$\6
+\&{static} \&{const} \&{char} ${}{*}\\{gameover\_msg}[\,]\K\{{}$\6
+${}\.{"***\ \ \ DRAW.\ \ \ \ ***"},{}$\6
+\.{"***\ \ X\ WINS.\ \ \ ***"}${},{}$\6
+\.{"***\ \ O\ WINS.\ \ \ ***"}${},{}$\6
+\.{"***\ Game\ over!\ ***"}\6
+${}\};{}$\6
+\&{static} \&{const} \&{enum} ${}\{{}$\1\6
+${}\.{MSG\_DRAW},{}$\6
+\.{MSG\_X\_WINS}${},{}$\6
+\.{MSG\_O\_WINS}${},{}$\6
+\.{MSG\_GAMEOVER}\2\6
+${}\}{}$ \\{gameover\_msg\_label};\par
+\fi
+
+\M{26}\PB{\\{winner}} will by \PB{\.{EMPTY}}, \PB{\.{XPLAYER}}, or \PB{%
+\.{OPLAYER}}; we can use these as indices
+to \PB{\\{gameover\_msg}}.
+
+\Y\B\4\X26:Gameover routine\X${}\E{}$\6
+$\\{printf}(\.{"\\n\%s\\n"},\39\\{gameover\_msg}[\.{MSG\_GAMEOVER}]);{}$\6
+${}\\{printf}(\.{"\%s\\n\\n"},\39\\{gameover\_msg}[\\{winner}]){}$;\par
 \U1.\fi
 
-\M{25}Error messages.
+\N{1}{27}Error messages.
 
 \Y\B\4\X2:Global variables\X${}\mathrel+\E{}$\6
 \&{static} \&{const} \&{enum} ${}\{{}$\1\6

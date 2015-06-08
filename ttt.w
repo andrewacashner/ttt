@@ -17,11 +17,17 @@ typedef enum {FALSE, TRUE} boolean;
 int main(int argc, char *argv[])
 {
 	@<Main variables@>@;
-	boolean bool_gameover;
-	bool_gameover = FALSE;
+	enum {EASY, HARD} game_mode = HARD;
+	boolean bool_gameover = FALSE;
 
 	@<Populate switching tables@>@;
-	
+
+	if (argc > 1) {
+		if (strcmp(argv[1], "-e") == 0) {
+			game_mode = EASY;
+		}
+	}
+
 	printf("%s\n", greeting);
 	@<Draw board@>@;
 
@@ -91,10 +97,10 @@ Set up a switching table with the winning triple series.
 Set up a table of permutations of these triples in which the first two are in
 ascending order (to find runs of 2/3).
 
-@d MAXANSWERS 8
+@d MAXTRIPLES 8
 
 @<Global variables@>=
-static const int answer[8][3] = {
+static const int triple[MAXTRIPLES][3] = {
 @/	{0, 1, 2}, 
 @/	{0, 3, 6}, 
 @/	{0, 4, 8}, 
@@ -118,10 +124,10 @@ int j; /* Loop counter */
 @ @<Populate switching tables@>=
 
 /* Build table of permutations */
-for (i = 0, j = 0; i < MAXANSWERS; ++i) {	
-	a = answer[i][0];
-	b = answer[i][1];
-	c = answer[i][2];
+for (i = 0, j = 0; i < MAXTRIPLES; ++i) {	
+	a = triple[i][0];
+	b = triple[i][1];
+	c = triple[i][2];
 	perms[j][0] = a;
 	perms[j][1] = b;
 	perms[j][2] = c;
@@ -135,6 +141,7 @@ for (i = 0, j = 0; i < MAXANSWERS; ++i) {
 	perms[j][2] = a;
 	++j;
 }
+
 
 @* Create linked lists of each player's current board positions.
 We will insert new moves into list of moves for a particular player, keeping
@@ -271,11 +278,11 @@ int test;
 
 @<Check for O win@>=
 if (total_O_moves > 2) {
-	test = two_of_three(OPLAYER, listOmoves, perms, gameboard_ptr);
-	if (test == O_WINS) {
+	if (three_of_three(listOmoves, total_O_moves) == TRUE) {
 		bool_gameover = TRUE;
 		winner = OPLAYER;
-	} 
+		break;
+	}
 }
 
 @ Prepare next move.
@@ -290,27 +297,24 @@ If all the squares are filled, the game is over automatically.
 
 @<Prepare next move@>=
 
-if (total_X_moves < 1) {
+if (game_mode == EASY || total_X_moves < 1) {
 	@<Pick any free spot@>@;
 } else {
 	test = two_of_three(XPLAYER, listXmoves, perms, gameboard_ptr);
 
 	if (test != NOTFOUND) {
-		printf("I found a matching triple of X positions.\n");
 		nextXmove = test;
 		bool_gameover = TRUE;
 		winner = XPLAYER;
 	} else {
-		test = two_of_three(XPLAYER, listOmoves, perms, gameboard_ptr);
-		if (test != NOTFOUND) {
-			printf("I found a matching duple of O positions and I will block the win.\n");
-			nextXmove = test;
-		} else {
-			@<Pick any free spot@>@;
-		}
+		if (game_mode == HARD) {
+			test = two_of_three(XPLAYER, listOmoves, perms, gameboard_ptr);
+			if (test != NOTFOUND) {
+				nextXmove = test;
+			} else @<Pick any free spot@>@;
+		} else @<Pick any free spot@>@;
 	}
 }
-
 newmove(XPLAYER, nextXmove, gameboard_ptr, charboard_ptr);
 @<Draw board@>@;
 ++squares_filled;
@@ -319,16 +323,23 @@ listXmoves = insert_sorted(listXmoves, nextXmove);
 printf("X moves: ");
 print_movelist(listXmoves);
 
+if (total_X_moves > 2) {
+	if (three_of_three(listXmoves, total_X_moves) == TRUE) {
+		bool_gameover = TRUE;
+		winner = XPLAYER;
+		break;
+	}
+}
 if (squares_filled > 8) {
 	bool_gameover = TRUE;  
 	winner = EMPTY;
+	break;
 }
 
 @ Choose any available free position from a list arranged with the most optimal
 spots (the middle and corners) first.
 
 @<Pick any free spot@>=
-printf("I found no matches; I will pick any good free spot.\n");
 for (i = 0; i < total_best_moves; ++i) {
 	test = best_moves[i];
 	if (gameboard[test] == EMPTY) {
@@ -400,6 +411,56 @@ if (player == OPLAYER) {
 @ @<Function prototypes@>=
 int two_of_three(int player, square_ptr head, int perms[][3], int *gameboard);
 
+
+@* Test for winning triple.
+
+@p
+boolean three_of_three(square_ptr list_head, int list_length)
+{
+	square_ptr list = list_head; /* List of player moves */
+	int i, j, k; /* Loop counters for list indices */
+	int t; /* Loop counter for triples */
+	int a, b, c; /* Test values at list indices */
+
+	for (i = 0; i < list_length - 2; ++i ) {
+		a = getlistdata(list, i);
+		for (j = i + 1; j < list_length - 1; ++ j) {
+			b = getlistdata(list, j);
+			for (k = j + 1; k < list_length; ++k) {
+				c = getlistdata(list, k);
+				for (t = 0; t < MAXTRIPLES; ++t) {
+					if (a == triple[t][0] &&
+						b == triple[t][1] &&
+						c == triple[t][2]) {
+							return(TRUE);
+					}
+				}
+			}
+		}
+	}
+	return(FALSE);
+}
+			
+@ @<Function prototypes@>=
+boolean three_of_three(square_ptr list_head, int list_length);
+
+@ Extract data from linked list of player moves at a particular index.
+
+@p
+int getlistdata(square_ptr list_head, int index)
+{
+	int i;
+	square_ptr list = list_head;
+	for (i = 0; list != NULL; list = list->next, ++i) {
+		if (i == index) {
+			return(list->position);
+		}
+	}
+	return(NOTFOUND);
+}
+
+@ @<Function prototypes@>=
+int getlistdata(square_ptr list_head, int index);
 
 @ Print current list of moves (for testing purposes only).
 
