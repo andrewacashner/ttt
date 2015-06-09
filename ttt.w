@@ -20,8 +20,6 @@ int main(int argc, char *argv[])
 	enum {EASY, HARD} game_mode = HARD;
 	boolean bool_gameover = FALSE;
 
-	@<Populate switching tables@>@;
-
 	if (argc > 1) {
 		if (strcmp(argv[1], "-e") == 0) {
 			game_mode = EASY;
@@ -93,11 +91,17 @@ printf("%s", charboard);
 
 
 @* Test for winning combinations.
-Set up a switching table with the winning triple series.
-Set up a table of permutations of these triples in which the first two are in
-ascending order (to find runs of 2/3).
+|triple| is a switching table with the winning triple series.
+|duple| is a table of permutations of these triples in which the first two are in
+ascending order (to find runs of 2 out of 3).
+|duple_range| gives the range of |x| indices to the |duple| array for each
+digit, so that if we are search for series beginning with 0, for example, we
+only search |duple[duple_range[0][MIN]]| to |duple[duple_range[0][MAX]]|.
 
 @d MAXTRIPLES 8
+@d MAXDUPLES 24
+@d MIN 0
+@d MAX 1
 
 @<Global variables@>=
 static const int triple[MAXTRIPLES][3] = {
@@ -112,35 +116,45 @@ static const int triple[MAXTRIPLES][3] = {
 @/
 };
 
-@ Set up switching table of permutations; we have to do this in |main|.
+static const int duple[MAXDUPLES][3] = {
+	{0,1,2},
+	{0,2,1},
+	{0,3,6},
+	{0,6,3},
+	{0,4,8},
+	{0,8,4},
+	{1,2,0},
+	{1,4,7},
+	{1,7,4},
+	{2,4,6},
+	{2,5,8},
+	{2,6,4},
+	{2,8,5},
+	{3,4,5},
+	{3,5,4},
+	{3,6,0},
+	{4,5,3},
+	{4,6,6},
+	{4,7,1},
+	{4,8,0},
+	{5,8,2},
+	{6,7,8},
+	{6,8,7},
+	{7,8,6}
+};
 
-@d MAXPERMS 24
+static const int duple_range[8][2] = {
+	{0,5},
+	{6,8}, 
+	{9,12}, 
+	{13,15}, 
+	{16,19},
+	{20,20},
+	{21,22},
+	{23,23}
+};
 
-@<Main variables@>=
-int perms[MAXPERMS][3]; /* Permutations of answer triples where [0] < [1] */
-int a, b, c; /* Single test values */
-int j; /* Loop counter */
 
-@ @<Populate switching tables@>=
-
-/* Build table of permutations */
-for (i = 0, j = 0; i < MAXTRIPLES; ++i) {	
-	a = triple[i][0];
-	b = triple[i][1];
-	c = triple[i][2];
-	perms[j][0] = a;
-	perms[j][1] = b;
-	perms[j][2] = c;
-	++j;
-	perms[j][0] = a;
-	perms[j][1] = c;
-	perms[j][2] = b;
-	++j;
-	perms[j][0] = b;
-	perms[j][1] = c;
-	perms[j][2] = a;
-	++j;
-}
 
 
 @* Create linked lists of each player's current board positions.
@@ -300,15 +314,13 @@ If all the squares are filled, the game is over automatically.
 if (game_mode == EASY || total_X_moves < 1) {
 	@<Pick any free spot@>@;
 } else {
-	test = two_of_three(XPLAYER, listXmoves, perms, gameboard_ptr);
+	test = two_of_three(listXmoves, total_X_moves, gameboard_ptr);
 
 	if (test != NOTFOUND) {
 		nextXmove = test;
-		bool_gameover = TRUE;
-		winner = XPLAYER;
 	} else {
 		if (game_mode == HARD) {
-			test = two_of_three(XPLAYER, listOmoves, perms, gameboard_ptr);
+			test = two_of_three(listOmoves, total_O_moves, gameboard_ptr);
 			if (test != NOTFOUND) {
 				nextXmove = test;
 			} else @<Pick any free spot@>@;
@@ -349,36 +361,34 @@ for (i = 0; i < total_best_moves; ++i) {
 }
 
 
-@* Function to test for two in a row, and if found, return the third member.
+@* Tests for two and three in a row.
+The first function, |two_of_three|, tests for two in a row, and if found and that position is not occupied, return the third member.
 
 @<Global variables@>=
 static const enum { NOTFOUND = -10, O_WINS } function_errors;
 
-@ If the player tested is |OPLAYER| then, the function also checks the
-|listOmoves| to see if |OPLAYER| has the third member also, meaning that O wins.
-In that case the function returns |O_WINS|.
-If no series of two is found, it returns |NOTFOUND|.
+@ The function checks every permutation of pairs in the list of current player
+moves against the relevant range of the |duple| array.
 
 @p
-int two_of_three(int player, square_ptr head, int perms[][3], int *gameboard)
+int two_of_three(square_ptr list_head, int list_length, int *gameboard)
 {
-	int i, p;
-	int third; /* Third member of triple when first two are found */
-	square_ptr list;
-
-	if (head == NULL) {
-		return(NOTFOUND);
-	} else {
-		list = head;
-	}
-
-	for (i = 0; list != NULL; list = list->next, ++i) { /* Test values */
-		for (p = 0; p < MAXPERMS; ++p) { /* $x$ indices of perms*/
-			if (list->position == perms[p][0]) {
-				if (list->next != NULL 
-				&& (list->next)->position == perms[p][1]) {
-					third = perms[p][2];
-					@<Test this permutation@>@;
+	square_ptr list = list_head; /* List of player moves */
+	int i, j; /* Loop counters for list indices */
+	int d; /* Loop counter for |duples| indices */
+	int first, second, third; /* Test values at list indices */
+	
+	for (i = 0; i < list_length - 1; ++i) {
+		first = getlistdata(list, i);
+		for (j = i + 1; j < list_length; ++j) {
+			second = getlistdata(list, j);
+			for (d = duple_range[first][MIN]; 
+			     d <= duple_range[first][MAX]; ++d) {
+				if (second == duple[d][1]) {
+					third = duple[d][2];
+					if (*(gameboard + third) == EMPTY) {
+						return(third);
+					}
 				}
 			}
 		}
@@ -386,33 +396,13 @@ int two_of_three(int player, square_ptr head, int perms[][3], int *gameboard)
 	return(NOTFOUND);
 }
 
-@ If we find a pair of the player's board positions that matches one of the
-winning permutations, then we test the permutation.
-If the player is |OPLAYER| then we only want to know if the third position is
-already occupied by O, because in that case O wins the game.
-If the player is |XPLAYER|, then the third position is the next X move if it is
-empty.
-
-@<Test this permutation@>=
-if (player == OPLAYER) {
-	if (*(gameboard + third) == OPLAYER) {
-		return(O_WINS);
-	} else {
-		continue;
-	}
-} else {
-	if (*(gameboard + third) == EMPTY) {
-		return(third);
-	} else {
-		continue; /* Next |p| */
-	}
-} 
 
 @ @<Function prototypes@>=
-int two_of_three(int player, square_ptr head, int perms[][3], int *gameboard);
+int two_of_three(square_ptr list_head, int list_length, int *gameboard);
 
 
-@* Test for winning triple.
+@* This boolean function tests for a winning triple. It is much like
+|two_of_three| except it tests three values at a time.
 
 @p
 boolean three_of_three(square_ptr list_head, int list_length)
@@ -440,9 +430,10 @@ boolean three_of_three(square_ptr list_head, int list_length)
 	}
 	return(FALSE);
 }
-			
+
 @ @<Function prototypes@>=
 boolean three_of_three(square_ptr list_head, int list_length);
+
 
 @ Extract data from linked list of player moves at a particular index.
 
@@ -483,7 +474,7 @@ void print_movelist(square_ptr list);
 static const char *gameover_msg[] = {
 @/	"***   DRAW.    ***",
 @/	"***  X WINS.   ***",
-@/	"***  O WINS.   ***",
+@/	"***  YOU WIN!  ***",
 @/	"*** Game over! ***"
 @/ 
 };
