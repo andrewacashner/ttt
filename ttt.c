@@ -15,7 +15,7 @@
 #include <string.h> 
 
 /*2:*/
-#line 46 "./ttt.w"
+#line 47 "./ttt.w"
 
 static const int charboard_index[]= {
 2,6,10,
@@ -39,7 +39,7 @@ static const enum{EMPTY,XPLAYER,OPLAYER}playerID;
 static const char playerchar[]= {' ','X','O'};
 
 /*:2*//*5:*/
-#line 106 "./ttt.w"
+#line 107 "./ttt.w"
 
 static const int triple[MAXTRIPLES][3]= {
 {0,1,2},
@@ -95,7 +95,7 @@ static const int duple_range[8][2]= {
 
 
 /*:5*//*6:*/
-#line 164 "./ttt.w"
+#line 165 "./ttt.w"
 
 typedef struct square*square_ptr;
 typedef struct square{
@@ -104,12 +104,12 @@ square_ptr next;
 }square;
 
 /*:6*//*17:*/
-#line 367 "./ttt.w"
+#line 368 "./ttt.w"
 
 static const enum{NOTFOUND= -10,O_WINS}function_errors;
 
-/*:17*//*26:*/
-#line 473 "./ttt.w"
+/*:17*//*29:*/
+#line 507 "./ttt.w"
 
 static const char*gameover_msg[]= {
 "***   DRAW.    ***",
@@ -127,8 +127,8 @@ MSG_GAMEOVER
 }gameover_msg_label;
 
 
-/*:26*//*28:*/
-#line 499 "./ttt.w"
+/*:29*//*31:*/
+#line 533 "./ttt.w"
 
 static const enum{
 O_COMMAND_OUT_OF_RANGE,
@@ -155,52 +155,57 @@ static const char greeting[]= {
 "Let's play!"
 };
 
-/*:28*/
+/*:31*/
 #line 12 "./ttt.w"
 
 typedef enum{FALSE,TRUE}boolean;
 
 /*8:*/
-#line 215 "./ttt.w"
+#line 216 "./ttt.w"
 
 square_ptr insert_sorted(square_ptr head,int new_position);
 
 
 /*:8*//*10:*/
-#line 229 "./ttt.w"
+#line 230 "./ttt.w"
 
 int newmove(int player,int square,int*gameboard,char*charboard);
 
 /*:10*//*19:*/
-#line 400 "./ttt.w"
+#line 401 "./ttt.w"
 
 int two_of_three(square_ptr list_head,int list_length,int*gameboard);
 
 
 /*:19*//*21:*/
-#line 434 "./ttt.w"
+#line 435 "./ttt.w"
 
 boolean three_of_three(square_ptr list_head,int list_length);
 
 
 /*:21*//*23:*/
-#line 453 "./ttt.w"
+#line 454 "./ttt.w"
 
 int getlistdata(square_ptr list_head,int index);
 
 /*:23*//*25:*/
-#line 468 "./ttt.w"
+#line 469 "./ttt.w"
 
 void print_movelist(square_ptr list);
 
-/*:25*/
+/*:25*//*28:*/
+#line 502 "./ttt.w"
+
+void free_list(square_ptr list_head);
+
+/*:28*/
 #line 15 "./ttt.w"
 
 
 int main(int argc,char*argv[])
 {
 /*3:*/
-#line 76 "./ttt.w"
+#line 77 "./ttt.w"
 
 int gameboard[9]= {0,0,0,0,0,0,0,0,0};
 char charboard[]= 
@@ -213,7 +218,7 @@ int*gameboard_ptr= gameboard;
 char*charboard_ptr= charboard;
 
 /*:3*//*11:*/
-#line 236 "./ttt.w"
+#line 237 "./ttt.w"
 
 char input_line[MAXLINE];
 int nextOmove;
@@ -224,7 +229,7 @@ int total_X_moves= 0;
 int winner= EMPTY;
 
 /*:11*//*13:*/
-#line 282 "./ttt.w"
+#line 283 "./ttt.w"
 
 int best_moves[]= {B2,A1,A3,C1,C3,A2,B1,B3,C2};
 int total_best_moves= 8;
@@ -248,7 +253,7 @@ game_mode= EASY;
 
 printf("%s\n",greeting);
 /*4:*/
-#line 89 "./ttt.w"
+#line 90 "./ttt.w"
 
 printf("%s",charboard);
 
@@ -259,7 +264,7 @@ printf("%s",charboard);
 
 while(bool_gameover==FALSE){
 /*12:*/
-#line 250 "./ttt.w"
+#line 251 "./ttt.w"
 
 while(1){
 
@@ -278,13 +283,13 @@ nextOmove+= input_line[1]-'1';
 if(gameboard[nextOmove]==EMPTY){
 newmove(OPLAYER,nextOmove,gameboard_ptr,charboard_ptr);
 /*4:*/
-#line 89 "./ttt.w"
+#line 90 "./ttt.w"
 
 printf("%s",charboard);
 
 
 /*:4*/
-#line 267 "./ttt.w"
+#line 268 "./ttt.w"
 
 ++squares_filled;
 ++total_O_moves;
@@ -302,7 +307,7 @@ printf("%s\n",error[SQUARE_OCCUPIED]);
 #line 33 "./ttt.w"
 
 /*14:*/
-#line 293 "./ttt.w"
+#line 294 "./ttt.w"
 
 if(total_O_moves> 2){
 if(three_of_three(listOmoves,total_O_moves)==TRUE){
@@ -316,12 +321,12 @@ break;
 #line 34 "./ttt.w"
 
 /*15:*/
-#line 312 "./ttt.w"
+#line 313 "./ttt.w"
 
 
 if(game_mode==EASY||total_X_moves<1){
 /*16:*/
-#line 354 "./ttt.w"
+#line 355 "./ttt.w"
 
 for(i= 0;i<total_best_moves;++i){
 test= best_moves[i];
@@ -333,7 +338,7 @@ break;
 
 
 /*:16*/
-#line 315 "./ttt.w"
+#line 316 "./ttt.w"
 
 }else{
 test= two_of_three(listXmoves,total_X_moves,gameboard_ptr);
@@ -346,22 +351,7 @@ test= two_of_three(listOmoves,total_O_moves,gameboard_ptr);
 if(test!=NOTFOUND){
 nextXmove= test;
 }else/*16:*/
-#line 354 "./ttt.w"
-
-for(i= 0;i<total_best_moves;++i){
-test= best_moves[i];
-if(gameboard[test]==EMPTY){
-nextXmove= test;
-break;
-}
-}
-
-
-/*:16*/
-#line 326 "./ttt.w"
-
-}else/*16:*/
-#line 354 "./ttt.w"
+#line 355 "./ttt.w"
 
 for(i= 0;i<total_best_moves;++i){
 test= best_moves[i];
@@ -375,17 +365,32 @@ break;
 /*:16*/
 #line 327 "./ttt.w"
 
+}else/*16:*/
+#line 355 "./ttt.w"
+
+for(i= 0;i<total_best_moves;++i){
+test= best_moves[i];
+if(gameboard[test]==EMPTY){
+nextXmove= test;
+break;
+}
+}
+
+
+/*:16*/
+#line 328 "./ttt.w"
+
 }
 }
 newmove(XPLAYER,nextXmove,gameboard_ptr,charboard_ptr);
 /*4:*/
-#line 89 "./ttt.w"
+#line 90 "./ttt.w"
 
 printf("%s",charboard);
 
 
 /*:4*/
-#line 331 "./ttt.w"
+#line 332 "./ttt.w"
 
 ++squares_filled;
 ++total_X_moves;
@@ -410,14 +415,23 @@ break;
 #line 35 "./ttt.w"
 
 }
-/*27:*/
-#line 493 "./ttt.w"
+/*30:*/
+#line 527 "./ttt.w"
 
 printf("\n%s\n",gameover_msg[MSG_GAMEOVER]);
 printf("%s\n\n",gameover_msg[winner]);
 
-/*:27*/
+/*:30*/
 #line 37 "./ttt.w"
+
+/*26:*/
+#line 474 "./ttt.w"
+
+free_list(listOmoves);
+free_list(listXmoves);
+
+/*:26*/
+#line 38 "./ttt.w"
 
 return(0);
 }
@@ -425,7 +439,7 @@ return(0);
 
 
 /*:1*//*7:*/
-#line 173 "./ttt.w"
+#line 174 "./ttt.w"
 
 square_ptr insert_sorted(square_ptr head,int new_position)
 {
@@ -469,7 +483,7 @@ return(head);
 }
 
 /*:7*//*9:*/
-#line 221 "./ttt.w"
+#line 222 "./ttt.w"
 
 int newmove(int player,int position,int*gameboard,char*charboard)
 {
@@ -479,7 +493,7 @@ return(0);
 }
 
 /*:9*//*18:*/
-#line 373 "./ttt.w"
+#line 374 "./ttt.w"
 
 int two_of_three(square_ptr list_head,int list_length,int*gameboard)
 {
@@ -508,7 +522,7 @@ return(NOTFOUND);
 
 
 /*:18*//*20:*/
-#line 407 "./ttt.w"
+#line 408 "./ttt.w"
 
 boolean three_of_three(square_ptr list_head,int list_length)
 {
@@ -537,7 +551,7 @@ return(FALSE);
 }
 
 /*:20*//*22:*/
-#line 440 "./ttt.w"
+#line 441 "./ttt.w"
 
 int getlistdata(square_ptr list_head,int index)
 {
@@ -552,7 +566,7 @@ return(NOTFOUND);
 }
 
 /*:22*//*24:*/
-#line 458 "./ttt.w"
+#line 459 "./ttt.w"
 
 void print_movelist(square_ptr list)
 {
@@ -563,4 +577,28 @@ printf("\n");
 return;
 }
 
-/*:24*/
+/*:24*//*27:*/
+#line 480 "./ttt.w"
+
+void free_list(square_ptr list)
+{
+square_ptr prev= NULL;
+
+if(list==NULL)
+return;
+else prev= list;
+
+while(list->next!=NULL){
+prev= list;
+list= list->next;
+prev= NULL;
+free(prev);
+}
+list= list->next;
+list= NULL;
+free(list);
+
+return;
+}
+
+/*:27*/

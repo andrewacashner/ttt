@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
 		@<Prepare next move@>@;
 	}
 	@<Gameover routine@>@;
+	@<Clean up@>@;
 	return(0);
 }
 
@@ -467,6 +468,39 @@ void print_movelist(square_ptr list)
 
 @ @<Function prototypes@>=
 void print_movelist(square_ptr list);
+
+@ Free linked-list memory.
+
+@<Clean up@>=
+free_list(listOmoves);
+free_list(listXmoves);
+
+@ Function to free linked list.
+
+@p
+void free_list(square_ptr list)
+{
+	square_ptr prev = NULL;
+
+	if (list == NULL) 
+		return;
+	else prev = list;
+
+	while (list->next != NULL) {
+		prev = list;
+		list = list->next;
+		prev = NULL;
+		free(prev);
+	}
+	list = list->next;
+	list = NULL;
+	free(list);
+
+	return;
+}
+
+@ @<Function prototypes@>=
+void free_list(square_ptr list_head);
 
 @* Game-over routine.
 
