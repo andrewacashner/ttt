@@ -1,8 +1,8 @@
 % ttt.w -- Tic tac toe game in CWEB, Copyright (c) 2015 Andrew A. Cashner
 % 2015-05-26
 
-@* Introduction. This is \.{ttt}, a command-line tic-tac-toe game.
-% TODO more
+@* Introduction. This is \.{ttt}, a command-line tic-tac-toe game by Andrew A.
+Cashner, \today.
 
 @p
 #include <stdio.h>
@@ -17,27 +17,55 @@ typedef enum {FALSE, TRUE} boolean;
 int main(int argc, char *argv[])
 {
 	@<Main variables@>@;
-	enum {EASY, HARD} game_mode = HARD;
-	boolean bool_gameover = FALSE;
-
-	if (argc > 1) {
-		if (strcmp(argv[1], "-e") == 0) {
-			game_mode = EASY;
-		}
-	}
+	
+	@<Process command-line options, set game mode@>@;
 
 	printf("%s\n", greeting);
 	@<Draw board@>@;
 
-	while (bool_gameover == FALSE) {
+	while (1) {
 		@<Get O move, update board@>@;
 		@<Check for O win@>@;
 		@<Prepare next move@>@;
 	}
-	@<Gameover routine@>@;
+	gameover:
+		@<Gameover routine@>@;
+	
 	@<Clean up@>@;
 	return(0);
 }
+
+@ Set mode of game play (easy, medium, hard) based on command-line option.
+
+@<Main variables@>=
+enum {EASY, MEDIUM, DIFFICULT} game_mode;
+
+@ @<Process command-line...@>=
+if (argc > 1 && argv[1][0] == '-') {
+	switch (argv[1][1]) {
+		case 'v':
+			printf("%s\n", message[VERSION]);
+			return(0);
+			break;
+		case 'h':
+			printf("%s\n", message[HELP]);
+			return(0);
+			break;
+		case 'e': 
+			game_mode = EASY;
+			break;
+		case 'm': 
+			game_mode = MEDIUM;
+			break;
+		case 'd':
+			game_mode = DIFFICULT;
+			break;
+		default:
+			fprintf(stderr, "%s\n", message[BAD_OPTION]);
+			exit(EXIT_FAILURE);
+			break;
+	}
+} else game_mode = DIFFICULT;
 
 
 
@@ -216,225 +244,7 @@ square_ptr insert_sorted(square_ptr head, int new_position)
 @ @<Function prototypes@>=
 square_ptr insert_sorted(square_ptr head, int new_position);
 
-
-@* Updating the game board.
-
-@p
-int newmove(int player, int position, int *gameboard, char *charboard) 
-{
-	*(gameboard + position) = player;
-	*(charboard + charboard_index[position]) = playerchar[player];
-	return(0); 
-}
-
-@ @<Function prototypes@>=
-int newmove(int player, int square, int *gameboard, char *charboard);
-
-@* Get user input for O move.
-
-@d MAXLINE 100
-
-@<Main variables@>=
-char input_line[MAXLINE];
-int nextOmove;
-int squares_filled; /* Total squares filled on board */
-square_ptr listOmoves = NULL;
-int total_O_moves = 0;
-int total_X_moves = 0; /* Counter per player of moves on board */
-int winner = EMPTY;
-
-@ Check O command for validity and set |nextOmove|.
-The command is entered in the form \.{A1\\n}.
-\.{'A'} is 0, \.{'B'} is 3, \.{'C'} is 6.
-\.{'A1'} is $0 + 0$, \.{'B2'} is $3 + 1$.
-
-@<Get O move, update board@>=
-while (1) {  
-@#
-	printf("\nYour move?\n"); 
-	fgets(input_line, sizeof(input_line), stdin); 
-@#
-	if (input_line[2] != '\n' ||
-	    input_line[0] < 'A' || input_line[0] > 'C' ||
-	    input_line[1] < '1' || input_line[1] > '3' ) {  
-		printf("%s\n", error[O_COMMAND_OUT_OF_RANGE]); @+
-		continue;
-	} 
-@#
-	nextOmove = (input_line[0] - 'A') * 3;
-	nextOmove += input_line[1] - '1'; 
-	if (gameboard[nextOmove] == EMPTY) {
-		newmove(OPLAYER, nextOmove, gameboard_ptr, charboard_ptr);
-		@<Draw board@>@;
-		++squares_filled;
-		++total_O_moves;
-		listOmoves = insert_sorted(listOmoves, nextOmove);
-		printf("O moves: ");
-		print_movelist(listOmoves);
-		break;
-	} else {
-		printf("%s\n", error[SQUARE_OCCUPIED]);
-	}
-@#
-}
-
-@* Process the X and O moves of turn just completed, and prepare next X move.
-
-@<Main variables@>=
-int best_moves[] = {B2, A1, A3, C1, C3, A2, B1, B3, C2};
-int total_best_moves = 8;
-int i;
-square_ptr listXmoves = NULL;
-int nextXmove;
-int test;
-
-
-@ See if O wins by having three in a row.
-
-@<Check for O win@>=
-if (total_O_moves > 2) {
-	if (three_of_three(listOmoves, total_O_moves) == TRUE) {
-		bool_gameover = TRUE;
-		winner = OPLAYER;
-		break;
-	}
-}
-
-@ Prepare next move.
-Test O values for 3/3; if so, O wins.
-If not, check if X has 2/3; if so, move to missing 3rd spot to win.
-If there is no 2/3 run for X, check if O has 2/3 and move to third spot to block
-O from winning.
-If there is no 2/3 run for O or X, then choose any favored free spot from
-|best_moves|.
-Finally, add |nextXmove| to the list of X moves and update the board.
-If all the squares are filled, the game is over automatically.
-
-@<Prepare next move@>=
-
-if (game_mode == EASY || total_X_moves < 1) {
-	@<Pick any free spot@>@;
-} else {
-	test = two_of_three(listXmoves, total_X_moves, gameboard_ptr);
-
-	if (test != NOTFOUND) {
-		nextXmove = test;
-	} else {
-		if (game_mode == HARD) {
-			test = two_of_three(listOmoves, total_O_moves, gameboard_ptr);
-			if (test != NOTFOUND) {
-				nextXmove = test;
-			} else @<Pick any free spot@>@;
-		} else @<Pick any free spot@>@;
-	}
-}
-newmove(XPLAYER, nextXmove, gameboard_ptr, charboard_ptr);
-@<Draw board@>@;
-++squares_filled;
-++total_X_moves;
-listXmoves = insert_sorted(listXmoves, nextXmove);
-printf("X moves: ");
-print_movelist(listXmoves);
-
-if (total_X_moves > 2) {
-	if (three_of_three(listXmoves, total_X_moves) == TRUE) {
-		bool_gameover = TRUE;
-		winner = XPLAYER;
-		break;
-	}
-}
-if (squares_filled > 8) {
-	bool_gameover = TRUE;  
-	winner = EMPTY;
-	break;
-}
-
-@ Choose any available free position from a list arranged with the most optimal
-spots (the middle and corners) first.
-
-@<Pick any free spot@>=
-for (i = 0; i < total_best_moves; ++i) {
-	test = best_moves[i];
-	if (gameboard[test] == EMPTY) {
-		nextXmove = test;
-		break;
-	}
-}
-
-
-@* Tests for two and three in a row.
-The first function, |two_of_three|, tests for two in a row, and if found and that position is not occupied, return the third member.
-
-@<Global variables@>=
-static const enum { NOTFOUND = -10, O_WINS } function_errors;
-
-@ The function checks every permutation of pairs in the list of current player
-moves against the relevant range of the |duple| array.
-
-@p
-int two_of_three(square_ptr list_head, int list_length, int *gameboard)
-{
-	square_ptr list = list_head; /* List of player moves */
-	int i, j; /* Loop counters for list indices */
-	int d; /* Loop counter for |duples| indices */
-	int first, second, third; /* Test values at list indices */
-	
-	for (i = 0; i < list_length - 1; ++i) {
-		first = getlistdata(list, i);
-		for (j = i + 1; j < list_length; ++j) {
-			second = getlistdata(list, j);
-			for (d = duple_range[first][MIN]; 
-			     d <= duple_range[first][MAX]; ++d) {
-				if (second == duple[d][1]) {
-					third = duple[d][2];
-					if (*(gameboard + third) == EMPTY) {
-						return(third);
-					}
-				}
-			}
-		}
-	}
-	return(NOTFOUND);
-}
-
-
-@ @<Function prototypes@>=
-int two_of_three(square_ptr list_head, int list_length, int *gameboard);
-
-
-@* This boolean function tests for a winning triple. It is much like
-|two_of_three| except it tests three values at a time.
-
-@p
-boolean three_of_three(square_ptr list_head, int list_length)
-{
-	square_ptr list = list_head; /* List of player moves */
-	int i, j, k; /* Loop counters for list indices */
-	int t; /* Loop counter for triples */
-	int a, b, c; /* Test values at list indices */
-
-	for (i = 0; i < list_length - 2; ++i ) {
-		a = getlistdata(list, i);
-		for (j = i + 1; j < list_length - 1; ++ j) {
-			b = getlistdata(list, j);
-			for (k = j + 1; k < list_length; ++k) {
-				c = getlistdata(list, k);
-				for (t = 0; t < MAXTRIPLES; ++t) {
-					if (a == triple[t][0] &&
-						b == triple[t][1] &&
-						c == triple[t][2]) {
-							return(TRUE);
-					}
-				}
-			}
-		}
-	}
-	return(FALSE);
-}
-
-@ @<Function prototypes@>=
-boolean three_of_three(square_ptr list_head, int list_length);
-
+@* Linked-list utilities.
 
 @ Extract data from linked list of player moves at a particular index.
 
@@ -502,6 +312,254 @@ void free_list(square_ptr list)
 @ @<Function prototypes@>=
 void free_list(square_ptr list_head);
 
+
+
+@* Updating the game board.
+
+@p
+int newmove(int player, int position, int *gameboard, char *charboard) 
+{
+	*(gameboard + position) = player;
+	*(charboard + charboard_index[position]) = playerchar[player];
+	return(0); 
+}
+
+@ @<Function prototypes@>=
+int newmove(int player, int square, int *gameboard, char *charboard);
+
+@* Get user input for O move.
+
+@d MAXLINE 100
+
+@<Main variables@>=
+char input_line[MAXLINE];
+int nextOmove;
+int squares_filled; /* Total squares filled on board */
+square_ptr listOmoves = NULL;
+int total_O_moves = 0;
+int total_X_moves = 0; /* Counter per player of moves on board */
+int winner = EMPTY;
+
+@ Check O command for validity and set |nextOmove|.
+The command is entered in the form \.{A1\\n}.
+\.{'A'} is 0, \.{'B'} is 3, \.{'C'} is 6.
+\.{'A1'} is $0 + 0$, \.{'B2'} is $3 + 1$.
+
+@<Get O move, update board@>=
+while (1) {  
+@#
+	printf("\nYour move?\n"); 
+	fgets(input_line, sizeof(input_line), stdin); 
+@#
+	if (input_line[2] != '\n' ||
+	    input_line[0] < 'A' || input_line[0] > 'C' ||
+	    input_line[1] < '1' || input_line[1] > '3' ) {  
+		printf("%s\n", message[O_COMMAND_OUT_OF_RANGE]); @+
+		continue;
+	} 
+@#
+	nextOmove = (input_line[0] - 'A') * 3;
+	nextOmove += input_line[1] - '1'; 
+	if (gameboard[nextOmove] == EMPTY) {
+		newmove(OPLAYER, nextOmove, gameboard_ptr, charboard_ptr);
+		@<Draw board@>@;
+		++squares_filled;
+		++total_O_moves;
+		listOmoves = insert_sorted(listOmoves, nextOmove);
+		printf("O moves: ");
+		print_movelist(listOmoves);
+		break;
+	} else {
+		printf("%s\n", message[SQUARE_OCCUPIED]);
+	}
+@#
+}
+
+@* Process the X and O moves of turn just completed, and prepare next X move.
+
+@<Main variables@>=
+int best_moves[] = {B2, A1, A3, C1, C3, A2, B1, B3, C2};
+int total_best_moves = 8;
+int i;
+square_ptr listXmoves = NULL;
+int nextXmove;
+int test;
+
+
+@ See if O wins by having three in a row.
+
+@<Check for O win@>=
+if (total_O_moves > 2) {
+	if (three_of_three(listOmoves, total_O_moves) == TRUE) {
+		winner = OPLAYER;
+		goto gameover;
+	}
+}
+
+@ Prepare next X move.
+How clever we are depends on the setting of |game_mode|.
+In |EASY| mode we just pick any free spot according to a list of optimal spots
+(first the center, then the corners).
+In |MEDIUM| mode first we test to see if we (X) can get a winning triple (that
+is, if we have 2 out of 3 of one of the winning series); if not then we pick any
+free spot. In this case we know X wins, so we jump to the |gameover| routine.
+
+In |DIFFICULT| mode we first test to see if the {\it other} player (O) can get a
+winning triple, and if so we block it. If not, then we do everything as in
+|MEDIUM| mode.
+We use the function |two_of_three| to do these tests.
+
+Finally, we add |nextXmove| to the list of X moves and update the board.
+In |EASY| mode, we test for a winning triple of X moves.
+If all the squares are filled, the game is over automatically.
+
+
+@<Prepare next move@>=
+
+switch (game_mode) {
+	case EASY:
+		@<Pick any free spot@>@;
+		break;
+	case MEDIUM:
+		if (total_X_moves < 1) {
+			@<Pick any free spot@>@;
+		} else {
+			test = two_of_three(listXmoves, total_X_moves, gameboard_ptr);
+			if (test != NOTFOUND) {
+				nextXmove = test;
+				winner = XPLAYER;
+			} else @<Pick any free spot@>@;
+		}
+		break;
+	case DIFFICULT:
+		if (total_X_moves < 1) {
+			@<Pick any free spot@>@;
+		} else {
+			test = two_of_three(listXmoves, total_X_moves, gameboard_ptr);
+			if (test != NOTFOUND) {
+				nextXmove = test;
+				winner = XPLAYER;
+			} else {
+				test = two_of_three(listOmoves, total_O_moves,
+				gameboard_ptr);
+				if (test != NOTFOUND) {
+					nextXmove = test;
+				} else @<Pick any free spot@>@;
+			}
+		}
+		break;
+}
+
+	
+newmove(XPLAYER, nextXmove, gameboard_ptr, charboard_ptr);
+@<Draw board@>@;
+++squares_filled;
+++total_X_moves;
+listXmoves = insert_sorted(listXmoves, nextXmove);
+printf("X moves: ");
+print_movelist(listXmoves);
+
+if (winner == XPLAYER) {
+	goto gameover;
+}
+if (game_mode == EASY && total_X_moves > 2) {
+	if (three_of_three(listXmoves, total_X_moves) == TRUE) {
+		winner = XPLAYER;
+		goto gameover;
+	}
+}
+if (squares_filled > 8) {
+	winner = EMPTY;
+	goto gameover;
+}
+
+@ Choose any available free position from a list arranged with the most optimal
+spots (the middle and corners) first.
+
+@<Pick any free spot@>=
+for (i = 0; i < total_best_moves; ++i) {
+	test = best_moves[i];
+	if (gameboard[test] == EMPTY) {
+		nextXmove = test;
+		break;
+	}
+}
+
+
+@* Tests for two and three in a row.
+The first function, |two_of_three|, tests for two in a row, and if found and that position is not occupied, return the third member.
+
+@<Global variables@>=
+static const enum { NOTFOUND = -10, O_WINS } function_errors;
+
+@ The function checks every permutation of pairs in the list of current player
+moves against the relevant range of the |duple| array.
+
+@p
+int two_of_three(square_ptr list_head, int list_length, int *gameboard)
+{
+	square_ptr list = list_head; /* List of player moves */
+	int i, j; /* Loop counters for list indices */
+	int d; /* Loop counter for |duples| indices */
+	int first, second, third; /* Test values at list indices */
+	
+	for (i = 0; i < list_length - 1; ++i) {
+		first = getlistdata(list, i);
+		for (j = i + 1; j < list_length; ++j) {
+			second = getlistdata(list, j);
+			for (d = duple_range[first][MIN]; 
+			     d <= duple_range[first][MAX]; ++d) {
+				if (second == duple[d][1]) {
+					third = duple[d][2];
+					if (*(gameboard + third) == EMPTY) {
+						return(third);
+					}
+				}
+			}
+		}
+	}
+	return(NOTFOUND);
+}
+
+
+@ @<Function prototypes@>=
+int two_of_three(square_ptr list_head, int list_length, int *gameboard);
+
+
+@* Test for winning triple.
+This is like |two_of_three| except it tests three values at a time.
+
+@p
+boolean three_of_three(square_ptr list_head, int list_length)
+{
+	square_ptr list = list_head; /* List of player moves */
+	int i, j, k; /* Loop counters for list indices */
+	int t; /* Loop counter for triples */
+	int a, b, c; /* Test values at list indices */
+
+	for (i = 0; i < list_length - 2; ++i ) {
+		a = getlistdata(list, i);
+		for (j = i + 1; j < list_length - 1; ++ j) {
+			b = getlistdata(list, j);
+			for (k = j + 1; k < list_length; ++k) {
+				c = getlistdata(list, k);
+				for (t = 0; t < MAXTRIPLES; ++t) {
+					if (a == triple[t][0] &&
+						b == triple[t][1] &&
+						c == triple[t][2]) {
+							return(TRUE);
+					}
+				}
+			}
+		}
+	}
+	return(FALSE);
+}
+
+@ @<Function prototypes@>=
+boolean three_of_three(square_ptr list_head, int list_length);
+
+
 @* Game-over routine.
 
 @<Global variables@>=
@@ -532,12 +590,27 @@ printf("%s\n\n", gameover_msg[winner]);
 
 @<Global variables@>=
 static const enum {
+	VERSION,
+	HELP,
+	BAD_OPTION,
 	O_COMMAND_OUT_OF_RANGE,
 	O_COMMAND_FAULTY,
 	SQUARE_OCCUPIED
-} error_msg;
+} msg_ID;
 
-static const char *error[] = {
+static const char *message[] = {
+	"ttt -- Command-line Tic Tac Toe\n"
+	"Version 1 (2015) by Andrew A.  Cashner",
+
+	"ttt -- Command-line Tic Tac Toe\n"
+	"Options: -h help, -e easy mode, -m medium mode, -d difficult mode.\n"
+	"Computer always plays X, you play O.\n"
+	"Select a square on the board by its label, such as 'A1' or 'C3'.",
+
+	"Unrecognized command-line option.\n"
+	"Acceptable options: -e -m -h (for easy, medium, and hard modes); "
+	"or invoke with no options.",
+
 	"That square is not on the board. "
 		"Enter A1, A2, A3, B1, B2, B3, C1, C2, or C3.",
 
@@ -545,6 +618,7 @@ static const char *error[] = {
 		"Enter a label like A1 and press [ENTER].",
 
 	"That square is already taken. Choose another."
+
 };
 static const char greeting[] = {
 	"\nTIC TAC TOE\n"

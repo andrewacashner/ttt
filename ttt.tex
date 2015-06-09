@@ -3,49 +3,83 @@
 % 2015-05-26
 
 
-\N{1}{1}Introduction. This is \.{ttt}, a command-line tic-tac-toe game.
-% TODO more
+\N{1}{1}Introduction. This is \.{ttt}, a command-line tic-tac-toe game by
+Andrew A.
+Cashner, \today.
 
 \Y\B\8\#\&{include} \.{<stdio.h>}\6
 \8\#\&{include} \.{<stdlib.h>}\6
 \8\#\&{include} \.{<string.h>}\6
-\X2:Global variables\X\7
+\X4:Global variables\X\7
 \&{typedef} \&{enum} ${}\{{}$\1\6
 ${}\.{FALSE},\39\.{TRUE}{}$\2\6
 ${}\}{}$ \&{boolean};\7
-\X8:Function prototypes\X\7
+\X10:Function prototypes\X\7
 \&{int} \\{main}(\&{int} \\{argc}${},\39{}$\&{char} ${}{*}\\{argv}[\,]){}$\1\1%
 \2\2\6
 ${}\{{}$\1\6
-\X3:Main variables\X\7
-\&{enum} ${}\{{}$\1\6
-${}\.{EASY},\39\.{HARD}{}$\2\6
-${}\}{}$ \\{game\_mode}${}\K\.{HARD};{}$\6
-\&{boolean} \\{bool\_gameover}${}\K\.{FALSE};{}$\7
-\&{if} ${}(\\{argc}>\T{1}){}$\5
-${}\{{}$\1\6
-\&{if} ${}(\\{strcmp}(\\{argv}[\T{1}],\39\.{"-e"})\E\T{0}){}$\5
-${}\{{}$\1\6
-${}\\{game\_mode}\K\.{EASY};{}$\6
-\4${}\}{}$\2\6
-\4${}\}{}$\2\6
+\X2:Main variables\X\6
+\X3:Process command-line options, set game mode\X\6
 ${}\\{printf}(\.{"\%s\\n"},\39\\{greeting});{}$\6
-\X4:Draw board\X\6
-\&{while} ${}(\\{bool\_gameover}\E\.{FALSE}){}$\5
+\X6:Draw board\X\6
+\&{while} (\T{1})\5
 ${}\{{}$\1\6
-\X12:Get O move, update board\X\6
-\X14:Check for O win\X\6
-\X15:Prepare next move\X\6
+\X22:Get O move, update board\X\6
+\X24:Check for O win\X\6
+\X25:Prepare next move\X\6
 \4${}\}{}$\2\6
-\X27:Gameover routine\X\6
+\4\\{gameover}:\5
+\X33:Gameover routine\X\6
+\X16:Clean up\X\6
 \&{return} (\T{0});\6
 \4${}\}{}$\2\par
 \fi
 
-\N{1}{2}Printing the game board.
+\M{2}Set mode of game play (easy, medium, hard) based on command-line option.
+
+\Y\B\4\X2:Main variables\X${}\E{}$\6
+\&{enum} ${}\{{}$\1\6
+${}\.{EASY},\39\.{MEDIUM},\39\.{DIFFICULT}{}$\2\6
+${}\}{}$ \\{game\_mode};\par
+\As5, 21\ETs23.
+\U1.\fi
+
+\M{3}\B\X3:Process command-line options, set game mode\X${}\E{}$\6
+\&{if} ${}(\\{argc}>\T{1}\W\\{argv}[\T{1}][\T{0}]\E\.{'-'}){}$\5
+${}\{{}$\1\6
+\&{switch} (\\{argv}[\T{1}][\T{1}])\5
+${}\{{}$\1\6
+\4\&{case} \.{'v'}:\5
+${}\\{printf}(\.{"\%s\\n"},\39\\{message}[\.{VERSION}]);{}$\6
+\&{return} (\T{0});\6
+\&{break};\6
+\4\&{case} \.{'h'}:\5
+${}\\{printf}(\.{"\%s\\n"},\39\\{message}[\.{HELP}]);{}$\6
+\&{return} (\T{0});\6
+\&{break};\6
+\4\&{case} \.{'e'}:\5
+${}\\{game\_mode}\K\.{EASY};{}$\6
+\&{break};\6
+\4\&{case} \.{'m'}:\5
+${}\\{game\_mode}\K\.{MEDIUM};{}$\6
+\&{break};\6
+\4\&{case} \.{'d'}:\5
+${}\\{game\_mode}\K\.{DIFFICULT};{}$\6
+\&{break};\6
+\4\&{default}:\5
+${}\\{fprintf}(\\{stderr},\39\.{"\%s\\n"},\39\\{message}[\.{BAD\_OPTION}]);{}$\6
+\\{exit}(\.{EXIT\_FAILURE});\6
+\&{break};\6
+\4${}\}{}$\2\6
+\4${}\}{}$\2\6
+\&{else}\1\5
+${}\\{game\_mode}\K\.{DIFFICULT}{}$;\2\par
+\U1.\fi
+
+\N{1}{4}Printing the game board.
 Set up switching tables needed to draw the board, and update the drawing.
 
-\Y\B\4\X2:Global variables\X${}\E{}$\6
+\Y\B\4\X4:Global variables\X${}\E{}$\6
 \&{static} \&{const} \&{int} \\{charboard\_index}[\,]${}\K\{{}$\6
 ${}\T{2},\39\T{6},\39\T{10},{}$\6
 \T{26}${},\39\T{30},\39\T{34},{}$\6
@@ -66,10 +100,10 @@ ${}\.{EMPTY},\39\.{XPLAYER},\39\.{OPLAYER}{}$\2\6
 ${}\}{}$ \\{playerID};\6
 \&{static} \&{const} \&{char} \\{playerchar}[\,]${}\K\{\.{'\ '},\39\.{'X'},\39%
 \.{'O'}\}{}$;\par
-\As5, 6, 17, 26\ETs28.
+\As7, 8, 27, 32\ETs34.
 \U1.\fi
 
-\M{3}We set up the table within \PB{\\{main}}.
+\M{5}We set up the table within \PB{\\{main}}.
 \PB{\\{gameboard}} holds \PB{\&{int}} values for each square of the gameboard,
 which is either
 \PB{\.{EMPTY}}, \PB{\.{XPLAYER}}, or \PB{\.{OPLAYER}}.
@@ -79,7 +113,7 @@ squares of \PB{\\{gameboard}} are filled.
 
 \Y\B\4\D$\.{CHAR\_BOARD\_LENGTH}$ \5
 \T{62}\par
-\Y\B\4\X3:Main variables\X${}\E{}$\6
+\Y\B\4\X2:Main variables\X${}\mathrel+\E{}$\6
 \&{int} \\{gameboard}[\T{9}]${}\K\{\T{0},\39\T{0},\39\T{0},\39\T{0},\39\T{0},%
 \39\T{0},\39\T{0},\39\T{0},\39\T{0}\}{}$;\C{ Start empty }\6
 \&{char} \\{charboard}[\,]${}\K{}$\6
@@ -90,16 +124,15 @@ squares of \PB{\\{gameboard}} are filled.
 \.{"\ \ \ |\ \ \ |\ \ \ \\n\\n"};\6
 \&{int} ${}{*}\\{gameboard\_ptr}\K\\{gameboard};{}$\6
 \&{char} ${}{*}\\{charboard\_ptr}\K\\{charboard}{}$;\par
-\As11\ET13.
-\U1.\fi
+\fi
 
-\M{4}Draw the board. We simply print \PB{\\{charboard}} to \PB{\\{stdout}}.
+\M{6}Draw the board. We simply print \PB{\\{charboard}} to \PB{\\{stdout}}.
 
-\Y\B\4\X4:Draw board\X${}\E{}$\6
+\Y\B\4\X6:Draw board\X${}\E{}$\6
 $\\{printf}(\.{"\%s"},\39\\{charboard}){}$;\par
-\Us1, 12\ETs15.\fi
+\Us1, 22\ETs25.\fi
 
-\N{1}{5}Test for winning combinations.
+\N{1}{7}Test for winning combinations.
 \PB{\\{triple}} is a switching table with the winning triple series.
 \PB{\\{duple}} is a table of permutations of these triples in which the first
 two are in
@@ -118,7 +151,7 @@ only search \PB{\\{duple}[\\{duple\_range}[\T{0}][\.{MIN}]]} to \PB{\\{duple}[%
 \T{0}\par
 \B\4\D$\.{MAX}$ \5
 \T{1}\par
-\Y\B\4\X2:Global variables\X${}\mathrel+\E{}$\6
+\Y\B\4\X4:Global variables\X${}\mathrel+\E{}$\6
 \&{static} \&{const} \&{int} \\{triple}[\.{MAXTRIPLES}][\T{3}]${}\K\{{}$\6
 ${}\{\T{0},\39\T{1},\39\T{2}\},{}$\6
 ${}\{\T{0},\39\T{3},\39\T{6}\},{}$\6
@@ -146,11 +179,11 @@ ${}\};{}$\6
 \T{23},\39\T{23}\}\}{}$;\par
 \fi
 
-\N{1}{6}Create linked lists of each player's current board positions.
+\N{1}{8}Create linked lists of each player's current board positions.
 We will insert new moves into list of moves for a particular player, keeping
 the list sorted in ascending order.
 
-\Y\B\4\X2:Global variables\X${}\mathrel+\E{}$\6
+\Y\B\4\X4:Global variables\X${}\mathrel+\E{}$\6
 \&{typedef} \&{struct} \\{square} ${}{*}\&{square\_ptr};{}$\6
 \&{typedef} \&{struct} \&{square} ${}\{{}$\1\6
 \&{int} \\{position};\6
@@ -158,7 +191,7 @@ the list sorted in ascending order.
 ${}\}{}$ \&{square};\par
 \fi
 
-\M{7}Function to insert items into linked list.
+\M{9}Function to insert items into linked list.
 
 \Y\B\&{square\_ptr} \\{insert\_sorted}(\&{square\_ptr} \\{head}${},\39{}$%
 \&{int} \\{new\_position})\1\1\2\2\6
@@ -201,13 +234,92 @@ ${}\\{new\_square}\MG\\{next}\K\NULL{}$;\C{ Return head of list }\6
 \4${}\}{}$\2\par
 \fi
 
-\M{8}\B\X8:Function prototypes\X${}\E{}$\6
+\M{10}\B\X10:Function prototypes\X${}\E{}$\6
 \&{square\_ptr} \\{insert\_sorted}(\&{square\_ptr} \\{head}${},\39{}$\&{int} %
 \\{new\_position});\par
-\As10, 19, 21, 23\ETs25.
+\As13, 15, 18, 20, 29\ETs31.
 \U1.\fi
 
-\N{1}{9}Updating the game board.
+\N{1}{11}Linked-list utilities.
+
+\fi
+
+\M{12}Extract data from linked list of player moves at a particular index.
+
+\Y\B\&{int} \\{getlistdata}(\&{square\_ptr} \\{list\_head}${},\39{}$\&{int} %
+\\{index})\1\1\2\2\6
+${}\{{}$\1\6
+\&{int} \|i;\6
+\&{square\_ptr} \\{list}${}\K\\{list\_head};{}$\7
+\&{for} ${}(\|i\K\T{0};{}$ ${}\\{list}\I\NULL;{}$ ${}\\{list}\K\\{list}\MG%
+\\{next},\39\PP\|i){}$\5
+${}\{{}$\1\6
+\&{if} ${}(\|i\E\\{index}){}$\5
+${}\{{}$\1\6
+\&{return} ${}(\\{list}\MG\\{position});{}$\6
+\4${}\}{}$\2\6
+\4${}\}{}$\2\6
+\&{return} (\.{NOTFOUND});\6
+\4${}\}{}$\2\par
+\fi
+
+\M{13}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
+\&{int} \\{getlistdata}(\&{square\_ptr} \\{list\_head}${},\39{}$\&{int} %
+\\{index});\par
+\fi
+
+\M{14}Print current list of moves (for testing purposes only).
+
+\Y\B\&{void} \\{print\_movelist}(\&{square\_ptr} \\{list})\1\1\2\2\6
+${}\{{}$\1\6
+\&{for} ( ; ${}\\{list}\I\NULL;{}$ ${}\\{list}\K\\{list}\MG\\{next}){}$\5
+${}\{{}$\1\6
+${}\\{printf}(\.{"\%s\ "},\39\\{square\_label}[\\{list}\MG\\{position}]);{}$\6
+\4${}\}{}$\2\6
+\\{printf}(\.{"\\n"});\6
+\&{return};\6
+\4${}\}{}$\2\par
+\fi
+
+\M{15}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
+\&{void} \\{print\_movelist}(\&{square\_ptr} \\{list});\par
+\fi
+
+\M{16}Free linked-list memory.
+
+\Y\B\4\X16:Clean up\X${}\E{}$\6
+\\{free\_list}(\\{listOmoves});\6
+\\{free\_list}(\\{listXmoves});\par
+\U1.\fi
+
+\M{17}Function to free linked list.
+
+\Y\B\&{void} \\{free\_list}(\&{square\_ptr} \\{list})\1\1\2\2\6
+${}\{{}$\1\6
+\&{square\_ptr} \\{prev}${}\K\NULL;{}$\7
+\&{if} ${}(\\{list}\E\NULL){}$\1\5
+\&{return};\2\6
+\&{else}\1\5
+${}\\{prev}\K\\{list};{}$\2\6
+\&{while} ${}(\\{list}\MG\\{next}\I\NULL){}$\5
+${}\{{}$\1\6
+${}\\{prev}\K\\{list};{}$\6
+${}\\{list}\K\\{list}\MG\\{next};{}$\6
+${}\\{prev}\K\NULL;{}$\6
+\\{free}(\\{prev});\6
+\4${}\}{}$\2\6
+${}\\{list}\K\\{list}\MG\\{next};{}$\6
+${}\\{list}\K\NULL;{}$\6
+\\{free}(\\{list});\6
+\&{return};\6
+\4${}\}{}$\2\par
+\fi
+
+\M{18}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
+\&{void} \\{free\_list}(\&{square\_ptr} \\{list\_head});\par
+\fi
+
+\N{1}{19}Updating the game board.
 
 \Y\B\&{int} \\{newmove}(\&{int} \\{player}${},\39{}$\&{int} \\{position}${},%
 \39{}$\&{int} ${}{*}\\{gameboard},\39{}$\&{char} ${}{*}\\{charboard}){}$\1\1\2%
@@ -220,16 +332,16 @@ ${}{*}(\\{charboard}+\\{charboard\_index}[\\{position}])\K\\{playerchar}[%
 \4${}\}{}$\2\par
 \fi
 
-\M{10}\B\X8:Function prototypes\X${}\mathrel+\E{}$\6
+\M{20}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
 \&{int} \\{newmove}(\&{int} \\{player}${},\39{}$\&{int} \&{square}${},\39{}$%
 \&{int} ${}{*}\\{gameboard},\39{}$\&{char} ${}{*}\\{charboard}){}$;\par
 \fi
 
-\N{1}{11}Get user input for O move.
+\N{1}{21}Get user input for O move.
 
 \Y\B\4\D$\.{MAXLINE}$ \5
 \T{100}\par
-\Y\B\4\X3:Main variables\X${}\mathrel+\E{}$\6
+\Y\B\4\X2:Main variables\X${}\mathrel+\E{}$\6
 \&{char} \\{input\_line}[\.{MAXLINE}];\6
 \&{int} \\{nextOmove};\6
 \&{int} \\{squares\_filled};\C{ Total squares filled on board }\6
@@ -240,28 +352,31 @@ board }\6
 \&{int} \\{winner}${}\K\.{EMPTY}{}$;\par
 \fi
 
-\M{12}Check O command for validity and set \PB{\\{nextOmove}}.
+\M{22}Check O command for validity and set \PB{\\{nextOmove}}.
 The command is entered in the form \.{A1\\n}.
 \.{'A'} is 0, \.{'B'} is 3, \.{'C'} is 6.
 \.{'A1'} is $0 + 0$, \.{'B2'} is $3 + 1$.
 
-\Y\B\4\X12:Get O move, update board\X${}\E{}$\6
-\&{while} (\T{1}) $\{{}$\7
+\Y\B\4\X22:Get O move, update board\X${}\E{}$\6
+\&{while} (\T{1})\5
+${}\{{}$\1\7
 \\{printf}(\.{"\\nYour\ move?\\n"});\6
 ${}\\{fgets}(\\{input\_line},\39{}$\&{sizeof} (\\{input\_line})${},\39%
 \\{stdin}){}$;\7
 \&{if} ${}(\\{input\_line}[\T{2}]\I\.{'\\n'}\V\\{input\_line}[\T{0}]<\.{'A'}\V%
 \\{input\_line}[\T{0}]>\.{'C'}\V\\{input\_line}[\T{1}]<\.{'1'}\V\\{input%
-\_line}[\T{1}]>\.{'3'})$ $\{$ \\{printf} $(\.{"\%s\\n"},\39$ \&{error} [\.{O%
-\_COMMAND\_OUT\_OF\_RANGE}] )  ;\5
-\&{continue}; $\}{}$\7
-$\\{nextOmove}\K(\\{input\_line}[\T{0}]-\.{'A'})*\T{3};{}$\6
-${}\\{nextOmove}\MRL{+{\K}}\\{input\_line}[\T{1}]-\.{'1'};$ \6
+\_line}[\T{1}]>\.{'3'}){}$\5
+${}\{{}$\1\6
+${}\\{printf}(\.{"\%s\\n"},\39\\{message}[\.{O\_COMMAND\_OUT\_OF\_RANGE}]){}$;\5
+\&{continue};\6
+\4${}\}{}$\2\7
+${}\\{nextOmove}\K(\\{input\_line}[\T{0}]-\.{'A'})*\T{3};{}$\6
+${}\\{nextOmove}\MRL{+{\K}}\\{input\_line}[\T{1}]-\.{'1'};{}$\6
 \&{if} ${}(\\{gameboard}[\\{nextOmove}]\E\.{EMPTY}){}$\5
 ${}\{{}$\1\6
 ${}\\{newmove}(\.{OPLAYER},\39\\{nextOmove},\39\\{gameboard\_ptr},\39%
 \\{charboard\_ptr});{}$\6
-\X4:Draw board\X\6
+\X6:Draw board\X\6
 ${}\PP\\{squares\_filled};{}$\6
 ${}\PP\\{total\_O\_moves};{}$\6
 ${}\\{listOmoves}\K\\{insert\_sorted}(\\{listOmoves},\39\\{nextOmove});{}$\6
@@ -269,15 +384,17 @@ ${}\\{listOmoves}\K\\{insert\_sorted}(\\{listOmoves},\39\\{nextOmove});{}$\6
 \\{print\_movelist}(\\{listOmoves});\6
 \&{break};\6
 \4${}\}{}$\2\6
-\&{else} $\{$ \\{printf} $(\.{"\%s\\n"},\39$ \&{error} [\.{SQUARE\_OCCUPIED}] )
- ; $\}{}$\7
-$\}{}$\par
+\&{else}\5
+${}\{{}$\1\6
+${}\\{printf}(\.{"\%s\\n"},\39\\{message}[\.{SQUARE\_OCCUPIED}]);{}$\6
+\4${}\}{}$\2\7
+\4${}\}{}$\2\par
 \U1.\fi
 
-\N{1}{13}Process the X and O moves of turn just completed, and prepare next X
+\N{1}{23}Process the X and O moves of turn just completed, and prepare next X
 move.
 
-\Y\B\4\X3:Main variables\X${}\mathrel+\E{}$\6
+\Y\B\4\X2:Main variables\X${}\mathrel+\E{}$\6
 \&{int} \\{best\_moves}[\,]${}\K\{\.{B2},\39\.{A1},\39\.{A3},\39\.{C1},\39%
 \.{C3},\39\.{A2},\39\.{B1},\39\.{B3},\39\.{C2}\};{}$\6
 \&{int} \\{total\_best\_moves}${}\K\T{8};{}$\6
@@ -287,36 +404,53 @@ move.
 \&{int} \\{test};\par
 \fi
 
-\M{14}See if O wins by having three in a row.
+\M{24}See if O wins by having three in a row.
 
-\Y\B\4\X14:Check for O win\X${}\E{}$\6
+\Y\B\4\X24:Check for O win\X${}\E{}$\6
 \&{if} ${}(\\{total\_O\_moves}>\T{2}){}$\5
 ${}\{{}$\1\6
 \&{if} ${}(\\{three\_of\_three}(\\{listOmoves},\39\\{total\_O\_moves})\E%
 \.{TRUE}){}$\5
 ${}\{{}$\1\6
-${}\\{bool\_gameover}\K\.{TRUE};{}$\6
 ${}\\{winner}\K\.{OPLAYER};{}$\6
-\&{break};\6
+\&{goto} \\{gameover};\6
 \4${}\}{}$\2\6
 \4${}\}{}$\2\par
 \U1.\fi
 
-\M{15}Prepare next move.
-Test O values for 3/3; if so, O wins.
-If not, check if X has 2/3; if so, move to missing 3rd spot to win.
-If there is no 2/3 run for X, check if O has 2/3 and move to third spot to
-block
-O from winning.
-If there is no 2/3 run for O or X, then choose any favored free spot from
-\PB{\\{best\_moves}}.
-Finally, add \PB{\\{nextXmove}} to the list of X moves and update the board.
+\M{25}Prepare next X move.
+How clever we are depends on the setting of \PB{\\{game\_mode}}.
+In \PB{\.{EASY}} mode we just pick any free spot according to a list of optimal
+spots
+(first the center, then the corners).
+In \PB{\.{MEDIUM}} mode first we test to see if we (X) can get a winning triple
+(that
+is, if we have 2 out of 3 of one of the winning series); if not then we pick
+any
+free spot. In this case we know X wins, so we jump to the \PB{\\{gameover}}
+routine.
+
+In \PB{\.{DIFFICULT}} mode we first test to see if the {\it other} player (O)
+can get a
+winning triple, and if so we block it. If not, then we do everything as in
+\PB{\.{MEDIUM}} mode.
+We use the function \PB{\\{two\_of\_three}} to do these tests.
+
+Finally, we add \PB{\\{nextXmove}} to the list of X moves and update the board.
+In \PB{\.{EASY}} mode, we test for a winning triple of X moves.
 If all the squares are filled, the game is over automatically.
 
-\Y\B\4\X15:Prepare next move\X${}\E{}$\6
-\&{if} ${}(\\{game\_mode}\E\.{EASY}\V\\{total\_X\_moves}<\T{1}){}$\5
+
+\Y\B\4\X25:Prepare next move\X${}\E{}$\6
+\&{switch} (\\{game\_mode})\5
 ${}\{{}$\1\6
-\X16:Pick any free spot\X\6
+\4\&{case} \.{EASY}:\5
+\X26:Pick any free spot\X\6
+\&{break};\6
+\4\&{case} \.{MEDIUM}:\6
+\&{if} ${}(\\{total\_X\_moves}<\T{1}){}$\5
+${}\{{}$\1\6
+\X26:Pick any free spot\X\6
 \4${}\}{}$\2\6
 \&{else}\5
 ${}\{{}$\1\6
@@ -325,10 +459,27 @@ ${}\\{test}\K\\{two\_of\_three}(\\{listXmoves},\39\\{total\_X\_moves},\39%
 \&{if} ${}(\\{test}\I\.{NOTFOUND}){}$\5
 ${}\{{}$\1\6
 ${}\\{nextXmove}\K\\{test};{}$\6
+${}\\{winner}\K\.{XPLAYER};{}$\6
+\4${}\}{}$\2\6
+\&{else}\1\5
+\X26:Pick any free spot\X\2\6
+\4${}\}{}$\2\6
+\&{break};\6
+\4\&{case} \.{DIFFICULT}:\6
+\&{if} ${}(\\{total\_X\_moves}<\T{1}){}$\5
+${}\{{}$\1\6
+\X26:Pick any free spot\X\6
 \4${}\}{}$\2\6
 \&{else}\5
 ${}\{{}$\1\6
-\&{if} ${}(\\{game\_mode}\E\.{HARD}){}$\5
+${}\\{test}\K\\{two\_of\_three}(\\{listXmoves},\39\\{total\_X\_moves},\39%
+\\{gameboard\_ptr});{}$\6
+\&{if} ${}(\\{test}\I\.{NOTFOUND}){}$\5
+${}\{{}$\1\6
+${}\\{nextXmove}\K\\{test};{}$\6
+${}\\{winner}\K\.{XPLAYER};{}$\6
+\4${}\}{}$\2\6
+\&{else}\5
 ${}\{{}$\1\6
 ${}\\{test}\K\\{two\_of\_three}(\\{listOmoves},\39\\{total\_O\_moves},\39%
 \\{gameboard\_ptr});{}$\6
@@ -337,43 +488,44 @@ ${}\{{}$\1\6
 ${}\\{nextXmove}\K\\{test};{}$\6
 \4${}\}{}$\2\6
 \&{else}\1\5
-\X16:Pick any free spot\X\2\6
+\X26:Pick any free spot\X\2\6
 \4${}\}{}$\2\6
-\&{else}\1\5
-\X16:Pick any free spot\X\2\6
 \4${}\}{}$\2\6
+\&{break};\6
 \4${}\}{}$\2\6
 ${}\\{newmove}(\.{XPLAYER},\39\\{nextXmove},\39\\{gameboard\_ptr},\39%
 \\{charboard\_ptr});{}$\6
-\X4:Draw board\X\6
+\X6:Draw board\X\6
 ${}\PP\\{squares\_filled};{}$\6
 ${}\PP\\{total\_X\_moves};{}$\6
 ${}\\{listXmoves}\K\\{insert\_sorted}(\\{listXmoves},\39\\{nextXmove});{}$\6
 \\{printf}(\.{"X\ moves:\ "});\6
 \\{print\_movelist}(\\{listXmoves});\6
-\&{if} ${}(\\{total\_X\_moves}>\T{2}){}$\5
+\&{if} ${}(\\{winner}\E\.{XPLAYER}){}$\5
+${}\{{}$\1\6
+\&{goto} \\{gameover};\6
+\4${}\}{}$\2\6
+\&{if} ${}(\\{game\_mode}\E\.{EASY}\W\\{total\_X\_moves}>\T{2}){}$\5
 ${}\{{}$\1\6
 \&{if} ${}(\\{three\_of\_three}(\\{listXmoves},\39\\{total\_X\_moves})\E%
 \.{TRUE}){}$\5
 ${}\{{}$\1\6
-${}\\{bool\_gameover}\K\.{TRUE};{}$\6
 ${}\\{winner}\K\.{XPLAYER};{}$\6
-\&{break};\6
+\&{goto} \\{gameover};\6
 \4${}\}{}$\2\6
 \4${}\}{}$\2\6
 \&{if} ${}(\\{squares\_filled}>\T{8}){}$\5
 ${}\{{}$\1\6
-${}\\{bool\_gameover}\K\.{TRUE};{}$\6
 ${}\\{winner}\K\.{EMPTY};{}$\6
-\&{break};\6
+\&{goto} \\{gameover};\6
 \4${}\}{}$\2\par
 \U1.\fi
 
-\M{16}Choose any available free position from a list arranged with the most
+\M{26}Choose any available free position from a list arranged with the most
 optimal
 spots (the middle and corners) first.
 
-\Y\B\4\X16:Pick any free spot\X${}\E{}$\6
+\Y\B\4\X26:Pick any free spot\X${}\E{}$\6
 \&{for} ${}(\|i\K\T{0};{}$ ${}\|i<\\{total\_best\_moves};{}$ ${}\PP\|i){}$\5
 ${}\{{}$\1\6
 ${}\\{test}\K\\{best\_moves}[\|i];{}$\6
@@ -383,19 +535,19 @@ ${}\\{nextXmove}\K\\{test};{}$\6
 \&{break};\6
 \4${}\}{}$\2\6
 \4${}\}{}$\2\par
-\U15.\fi
+\U25.\fi
 
-\N{1}{17}Tests for two and three in a row.
+\N{1}{27}Tests for two and three in a row.
 The first function, \PB{\\{two\_of\_three}}, tests for two in a row, and if
 found and that position is not occupied, return the third member.
 
-\Y\B\4\X2:Global variables\X${}\mathrel+\E{}$\6
+\Y\B\4\X4:Global variables\X${}\mathrel+\E{}$\6
 \&{static} \&{const} \&{enum} ${}\{{}$\1\6
 ${}\.{NOTFOUND}\K{-}\T{10},\39\.{O\_WINS}{}$\2\6
 ${}\}{}$ \\{function\_errors};\par
 \fi
 
-\M{18}The function checks every permutation of pairs in the list of current
+\M{28}The function checks every permutation of pairs in the list of current
 player
 moves against the relevant range of the \PB{\\{duple}} array.
 
@@ -431,13 +583,13 @@ ${}\{{}$\1\6
 \4${}\}{}$\2\par
 \fi
 
-\M{19}\B\X8:Function prototypes\X${}\mathrel+\E{}$\6
+\M{29}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
 \&{int} \\{two\_of\_three}(\&{square\_ptr} \\{list\_head}${},\39{}$\&{int} %
 \\{list\_length}${},\39{}$\&{int} ${}{*}\\{gameboard}){}$;\par
 \fi
 
-\N{1}{20}This boolean function tests for a winning triple. It is much like
-\PB{\\{two\_of\_three}} except it tests three values at a time.
+\N{1}{30}Test for winning triple.
+This is like \PB{\\{two\_of\_three}} except it tests three values at a time.
 
 \Y\B\&{boolean} \\{three\_of\_three}(\&{square\_ptr} \\{list\_head}${},\39{}$%
 \&{int} \\{list\_length})\1\1\2\2\6
@@ -470,55 +622,14 @@ ${}\{{}$\1\6
 \4${}\}{}$\2\par
 \fi
 
-\M{21}\B\X8:Function prototypes\X${}\mathrel+\E{}$\6
+\M{31}\B\X10:Function prototypes\X${}\mathrel+\E{}$\6
 \&{boolean} \\{three\_of\_three}(\&{square\_ptr} \\{list\_head}${},\39{}$%
 \&{int} \\{list\_length});\par
 \fi
 
-\M{22}Extract data from linked list of player moves at a particular index.
+\N{1}{32}Game-over routine.
 
-\Y\B\&{int} \\{getlistdata}(\&{square\_ptr} \\{list\_head}${},\39{}$\&{int} %
-\\{index})\1\1\2\2\6
-${}\{{}$\1\6
-\&{int} \|i;\6
-\&{square\_ptr} \\{list}${}\K\\{list\_head};{}$\7
-\&{for} ${}(\|i\K\T{0};{}$ ${}\\{list}\I\NULL;{}$ ${}\\{list}\K\\{list}\MG%
-\\{next},\39\PP\|i){}$\5
-${}\{{}$\1\6
-\&{if} ${}(\|i\E\\{index}){}$\5
-${}\{{}$\1\6
-\&{return} ${}(\\{list}\MG\\{position});{}$\6
-\4${}\}{}$\2\6
-\4${}\}{}$\2\6
-\&{return} (\.{NOTFOUND});\6
-\4${}\}{}$\2\par
-\fi
-
-\M{23}\B\X8:Function prototypes\X${}\mathrel+\E{}$\6
-\&{int} \\{getlistdata}(\&{square\_ptr} \\{list\_head}${},\39{}$\&{int} %
-\\{index});\par
-\fi
-
-\M{24}Print current list of moves (for testing purposes only).
-
-\Y\B\&{void} \\{print\_movelist}(\&{square\_ptr} \\{list})\1\1\2\2\6
-${}\{{}$\1\6
-\&{for} ( ; ${}\\{list}\I\NULL;{}$ ${}\\{list}\K\\{list}\MG\\{next}){}$\5
-${}\{{}$\1\6
-${}\\{printf}(\.{"\%s\ "},\39\\{square\_label}[\\{list}\MG\\{position}]);{}$\6
-\4${}\}{}$\2\6
-\\{printf}(\.{"\\n"});\6
-\&{return};\6
-\4${}\}{}$\2\par
-\fi
-
-\M{25}\B\X8:Function prototypes\X${}\mathrel+\E{}$\6
-\&{void} \\{print\_movelist}(\&{square\_ptr} \\{list});\par
-\fi
-
-\N{1}{26}Game-over routine.
-
-\Y\B\4\X2:Global variables\X${}\mathrel+\E{}$\6
+\Y\B\4\X4:Global variables\X${}\mathrel+\E{}$\6
 \&{static} \&{const} \&{char} ${}{*}\\{gameover\_msg}[\,]\K\{{}$\6
 ${}\.{"***\ \ \ DRAW.\ \ \ \ ***"},{}$\6
 \.{"***\ \ X\ WINS.\ \ \ ***"}${},{}$\6
@@ -533,27 +644,36 @@ ${}\.{MSG\_DRAW},{}$\6
 ${}\}{}$ \\{gameover\_msg\_label};\par
 \fi
 
-\M{27}\PB{\\{winner}} will by \PB{\.{EMPTY}}, \PB{\.{XPLAYER}}, or \PB{%
+\M{33}\PB{\\{winner}} will by \PB{\.{EMPTY}}, \PB{\.{XPLAYER}}, or \PB{%
 \.{OPLAYER}}; we can use these as indices
 to \PB{\\{gameover\_msg}}.
 
-\Y\B\4\X27:Gameover routine\X${}\E{}$\6
+\Y\B\4\X33:Gameover routine\X${}\E{}$\6
 $\\{printf}(\.{"\\n\%s\\n"},\39\\{gameover\_msg}[\.{MSG\_GAMEOVER}]);{}$\6
 ${}\\{printf}(\.{"\%s\\n\\n"},\39\\{gameover\_msg}[\\{winner}]){}$;\par
 \U1.\fi
 
-\N{1}{28}Error messages.
+\N{1}{34}Error messages.
 
-\Y\B\4\X2:Global variables\X${}\mathrel+\E{}$\6
+\Y\B\4\X4:Global variables\X${}\mathrel+\E{}$\6
 \&{static} \&{const} \&{enum} ${}\{{}$\1\6
-${}\.{O\_COMMAND\_OUT\_OF\_RANGE},\39\.{O\_COMMAND\_FAULTY},\39\.{SQUARE%
-\_OCCUPIED}{}$\2\6
-${}\}{}$ \\{error\_msg}; \&{static} \&{const} \&{char} ${}{*}$ \&{error} [\,] $%
-\K$ $\{\.{"That\ square\ is\ not\ }\)\.{on\ the\ board.\ "}\.{"Enter\ A1,\ A2,\
-A3,\ B}\)\.{1,\ B2,\ B3,\ C1,\ C2,\ o}\)\.{r\ C3."},\39\.{"I\ don't\ understand%
-\ }\)\.{your\ command.\ "}\.{"Enter\ a\ label\ like\ }\)\.{A1\ and\ press\
-[ENTER]}\)\.{."},\39\.{"That\ square\ is\ alre}\)\.{ady\ taken.\ Choose\ an}\)%
-\.{other."}\};{}$\7
+${}\.{VERSION},\39\.{HELP},\39\.{BAD\_OPTION},\39\.{O\_COMMAND\_OUT\_OF%
+\_RANGE},\39\.{O\_COMMAND\_FAULTY},\39\.{SQUARE\_OCCUPIED}{}$\2\6
+${}\}{}$ \\{msg\_ID};\6
+\&{static} \&{const} \&{char} ${}{*}\\{message}[\,]\K\{\.{"ttt\ --\
+Command-line}\)\.{\ Tic\ Tac\ Toe\\n"}\.{"Version\ 1\ (2015)\ by}\)\.{\ Andrew\
+A.\ \ Cashner"},\39\.{"ttt\ --\ Command-line}\)\.{\ Tic\ Tac\ Toe\\n"}%
+\.{"Options:\ -h\ help,\ -}\)\.{e\ easy\ mode,\ -m\ medi}\)\.{um\ mode,\ -d\
+difficul}\)\.{t\ mode.\\n"}\.{"Computer\ always\ pla}\)\.{ys\ X,\ you\ play\ O.%
+\\n"}\.{"Select\ a\ square\ on\ }\)\.{the\ board\ by\ its\ lab}\)\.{el,\ such\
+as\ 'A1'\ or\ }\)\.{'C3'."},\39\.{"Unrecognized\ comman}\)\.{d-line\ option.%
+\\n"}\.{"Acceptable\ options:}\)\.{\ -e\ -m\ -h\ (for\ easy,}\)\.{\ medium,\
+and\ hard\ mo}\)\.{des);\ "}\.{"or\ invoke\ with\ no\ o}\)\.{ptions."},\39%
+\.{"That\ square\ is\ not\ }\)\.{on\ the\ board.\ "}\.{"Enter\ A1,\ A2,\ A3,\
+B}\)\.{1,\ B2,\ B3,\ C1,\ C2,\ o}\)\.{r\ C3."},\39\.{"I\ don't\ understand\ }\)%
+\.{your\ command.\ "}\.{"Enter\ a\ label\ like\ }\)\.{A1\ and\ press\ [ENTER]}%
+\)\.{."},\39\.{"That\ square\ is\ alre}\)\.{ady\ taken.\ Choose\ an}\)%
+\.{other."}\};{}$\6
 \&{static} \&{const} \&{char} \\{greeting}[\,]${}\K\{\.{"\\nTIC\ TAC\ TOE\\n"}%
 \.{"I\ play\ X.\ You\ play\ }\)\.{O.\ You\ go\ first.\\n"}\.{"Use\ one\ of\ the%
 \ labe}\)\.{ls\ shown\ below\ to\ sa}\)\.{y\ where\ you\ will\ mov}\)\.{e.\\n"}%
