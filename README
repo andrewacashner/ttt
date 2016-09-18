@@ -1,7 +1,7 @@
 ttt -- Command-line Tic Tac Toe
 -------------------------------
 
-Copyright (c) 2015 Andrew A. Cashner
+Andrew A. Cashner, 2015
 
 This is a Tic Tac Toe program designed for the command line or TTY terminal.
 
@@ -28,3 +28,7 @@ Compile this Plain TeX document with, `pdftex ttt`.
      + `ctangle ttt && gcc -o ttt ttt.c`
 	 + `cweave ttt && pdftex ttt`
 
+## License
+This work is in the public domain.
+You may do what you like with it.
+I provide no warranty of any kind.
