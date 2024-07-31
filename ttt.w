@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
 	while (1) {
 		@<Get O move, update board@>@;
-	<	@<Check for O win@>@;
+		@<Check for O win@>@;
 		@<Prepare next move@>@;
 	}
 	gameover:
